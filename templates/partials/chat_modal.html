@@ -1,0 +1,14 @@
+    <div id="modal" class="w3-modal" _="on closeModal add .closing then wait for animationend then remove me">
+        <div class="w3-modal-content">
+            <div class="w3-container w3-margin w3-padding">
+            <h3>{{ context.chat_info }}</h3>
+            <button _="on click trigger closeModal">Read loud</button>
+                <p_modal><small>{{ context.chat_info.dialoque|linebreaks }}</small></p_modal>
+            <p>{{ context.chat_info.timestamp }}</p>
+            <hr>
+            <button _="on click trigger closeModal">Share</button>
+            <button _="on click trigger closeModal">Print</button>
+            <button _="on click trigger closeModal">Close</button>
+            </div>
+        </div>
+    </div>

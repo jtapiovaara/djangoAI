@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+{% load static %}
+<head>
+    <title>Django AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon"
+          href="{% static 'dog.png' %}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="{% static 'main.css'%}">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="https://unpkg.com/htmx.org@1.8.6"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.8"></script>
+</head>
+<style>
+    header {
+        position: fixed;
+        width: 100%;
+        background-color: #8e8ea0;
+    }
+    input[type="text"] {
+        width: 300px;
+    }
+    button[type="submit"] {
+        width: 300px;
+        padding: 12px 0;
+        color: #fff;
+        background-color: #006680;
+        {#background-color: #10a37f;#}
+        border: none;
+        border-radius: 4px;
+        text-align: center;
+        cursor: pointer;
+    }
+    p {
+        width: 320px;
+    }
+    p_modal {
+        width: auto;
+    }
+    #modal {
+        /* Underlay covers entire screen. */
+        position: fixed;
+        top:0;
+        bottom: 0;
+        left:0;
+        right:0;
+        background-color:rgba(0,0,0,0.5);
+        z-index:1000;
+
+        /* Flexbox centers the .modal-content vertically and horizontally */
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+
+        /* Animate when opening */
+        animation-name: fadeIn;
+        animation-duration:150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal > .modal-underlay {
+        /* underlay takes up the entire viewport. This is only
+        required if you want to click to dismiss the popup */
+        position: absolute;
+        z-index: -1;
+        top:0;
+        bottom:0;
+        left: 0;
+        right: 0;
+    }
+
+    #modal > .modal-content {
+        /* Position visible dialog near the top of the window */
+        margin-top:10vh;
+
+        /* Sizing for visible dialog */
+        width:80%;
+        max-width:600px;
+
+        /* Display properties for visible dialog*/
+        border:solid 1px #999;
+        border-radius:8px;
+        box-shadow: 0 0 20px 0 rgba(0,0,0,0.3);
+        background-color:white;
+        padding:20px;
+
+        /* Animate when opening */
+        animation-name:zoomIn;
+        animation-duration:150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal.closing {
+        /* Animate when closing */
+        animation-name: fadeOut;
+        animation-duration:150ms;
+        animation-timing-function: ease;
+    }
+
+    #modal.closing > .modal-content {
+        /* Aniate when closing */
+        animation-name: zoomOut;
+        animation-duration:150ms;
+        animation-timing-function: ease;
+    }
+
+    @keyframes fadeIn {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+
+    @keyframes fadeOut {
+        0% {opacity: 1;}
+        100% {opacity: 0;}
+    }
+
+    @keyframes zoomIn {
+        0% {transform: scale(0.9);}
+        100% {transform: scale(1);}
+    }
+
+    @keyframes zoomOut {
+        0% {transform: scale(1);}
+        100% {transform: scale(0.9);}
+    }
+</style>
+<body>
+<div class="w3-center">
+    <header>
+        <small title="Now using models:&nbsp;{{ context.model_coding }},&nbsp;{{ context.model_completions }},&nbsp;{{ context.model_chat }}">OpenAI tools <b>chatGPT</b> & <b>DALLE2</b></small>
+    </header>
+</div>
+<br>
+<div class="w3-container">
+    <div class="w3-container w3-cell w3-quarter" id="cats">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'cat.png' %}"
+                     class="icon">&nbsp;Name your Pet</h3>
+            <form hx-post="{% url 'animals' %}"
+                  hx-include="[name='animal']"
+                  hx-target="#result">
+                {% csrf_token %}
+                <input type="text"
+                       id="name"
+                       name="animal"
+                       onfocus="this.value=''"
+                       placeholder="beautiful lazy dog..">
+                <p class="w3-small">Characterize your pet or something else ('beautiful lazy dog', 'curious programmer')</p>
+                <button type="submit"
+                        class="w3-margin-top"
+                        value="1. Generate names">1. Generate names</button>
+                <button type="submit" id="haekissakuva" class="w3-margin-top"
+                        hx-get="{% url 'getimage' %}"
+                        hx-include="[name='animal']"
+                        hx-target="#kuva">2. Get picture&nbsp;<img class="htmx-indicator w3-circle"
+                                                                        src="{% static 'process.gif' %}"
+                                                                    style="width: 24px"></button>
+            </form>
+            <div id="result" class="w3-margin-top"></div>
+            <div id="kuva"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter" id="arts">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'colosseum.png' %}"
+                 class="icon">&nbsp;Ask about Art</h3>
+            <div>
+                <form>
+                    <input type="text"
+                           name="kysymys"
+                           onfocus="this.value=''"
+                           placeholder="ask anything about Art..">
+                    <div class="w3-row">
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_1" name="tyyli" value="Impressionism">
+                        <label for="rb_1">Impressionism</label>
+                      </div>
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_6" name="tyyli" value="Abstract Expressionism">
+                        <label for="rb_6">Abstract</label>
+                      </div>
+                    </div>
+                    <div class="w3-row">
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_2" name="tyyli" value="Expressionism">
+                        <label for="rb_2">Expressionism</label>
+                      </div>
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_3" name="tyyli" value="Fauvism">
+                        <label for="rb_3">Fauvism</label>
+                      </div>
+                    </div>
+                    <div class="w3-row">
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_4" name="tyyli" value="Cubism">
+                        <label for="rb_4">Cubism</label>
+                      </div>
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_5" name="tyyli" value="Surrealism">
+                        <label for="rb_5">Surrealism</label>
+                      </div>
+                    </div>
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'kysymys' %}"
+                            hx-include="[name='kysymys'], [name='tyyli']"
+                            hx-target="#vastaus">Send&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                    src="{% static 'spinner.gif' %}"
+                                                                                style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="vastaus"></div>
+            <div>
+                <form hx-get="{% url 'tyylitaulu' %}"
+                      hx-include="[name='artanswer']"
+                      hx-target="#newpainting">
+                    <button type="submit"
+                            class="w3-margin-top w3-center">Get it DALLE2 styled&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                           src="{% static 'process.gif' %}"
+                                                                                           style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="newpainting" class="w3-margin"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter"  id="books">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'books.png' %}"
+                 class="icon">&nbsp;About books</h3>
+            <div>
+                <form>
+                    <input type="text" name="kirjalija" placeholder="Kirjailija..">
+                    <input type="text" name="kirja" placeholder="Kirja..">
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'kirjallisuus' %}"
+                            hx-include="[name='kirjailija'], [name='kirja']"
+                            hx-target="#kirjasta">Lets go Bookworm&nbsp;<img class="htmx-indicator w3-circle"
+                                                                             src="{% static 'books.gif' %}"
+                                                                             style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="kirjasta"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter" id="stars">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'stars.png' %}"
+                 class="icon">&nbsp;Ask about stars</h3>
+            <div>
+                <form>
+                    <input type="text" name="stars" placeholder="Astronomy..">
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'stars' %}"
+                            hx-include="[name='stars']"
+                            hx-target="#fromstars">Send AI to stars<img class="htmx-indicator w3-circle"
+                                                                        src="{% static 'process.gif' %}"
+                                                                    style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="fromstars"></div>
+        </div>
+    </div>
+</div>
+<div class="w3-container">
+    <div class="w3-container w3-cell w3-quarter" id="turbo">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'chat.png' %}"
+                 class="icon">&nbsp;Chat in Turbo mode</h3>
+            <div id="fromturbo"></div>
+            <div>
+                <form>
+                    {% csrf_token %}
+                    <input type="text" name="fast" placeholder="Ask anything from GPT-4..">
+                    <div class="w3-row">
+                        <div class="w3-col s6">
+                            <input type="radio" id="ai" name="stylemode" value="ai" checked>
+                            <label for="ai" title="Just basic AI, heh">AI&nbsp;</label>
+                        </div>
+                        <div class="w3-col s6">
+                        <input type="radio" id="albert" name="stylemode" value="albert" >
+                        <label for="albert" title="Yes, Einstein is my surname">Albert</label>
+                      </div>
+                    </div>
+                    <div class="w3-row">
+                        <div class="w3-col s6">
+                        <input type="radio" id="emilia" name="stylemode" value="emilia" >
+                        <label for="emilia" title="You know I was the first female to fly solo across Atlantic">Emilia&nbsp;</label>
+                      </div>
+                        <div class="w3-col s6">
+                            <input type="radio" id="jack" name="stylemode" value="jack" >
+                            <label for="jack" title="but why's the Rhum gone?">Jack&nbsp;</label>
+                        </div>
+                    </div>
+                    <div class="w3-row">
+                        <div class="w3-col s6">
+                            <input type="radio" id="marv" name="stylemode" value="marv" >
+                            <label for="marv" title="bother me with your boring questions">Marv&nbsp;</label>
+                        </div>
+                        <div class="w3-col s6">
+                            <input type="radio" id="socrates" name="stylemode" value="socrates" >
+                            <label for="socrates" title="I will always answer with a question">Socrates</label>
+                        </div>
+                    </div>
+                    <div class="w3-row">
+                        <div class="w3-col s6">
+                            <input type="radio" id="marv" name="stylemode" value="drunken" >
+                            <label for="drunken" title="AM heer to jooiy --burp-">Bottle Jim&nbsp;</label>
+                        </div>
+                    </div>
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-post="{% url 'turbomode' %}"
+                            hx-include="[name='fast'], [name='stylemode']"
+                            hx-target="#fromturbo">Go Turbomode!&nbsp;<img class="htmx-indicator w3-circle"
+                                                                        src="{% static 'spinner.gif' %}"
+                                                                    style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="flush">
+                <button type="submit"
+                        class="w3-margin-top"
+                        hx-get="{% url 'flushchat' %}">&nbsp;Save & flush chat&nbsp;☐&nbsp;</button>
+                <button type="submit"
+                        class="w3-margin-top"
+                        hx-get="{% url 'chatstories' %}"
+                        hx-target="#storieslist">&nbsp;Read stories&nbsp;</button>
+            </div>
+            <div id="storieslist"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter" id="coding">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'computer.png' %}"
+                 class="icon">&nbsp;Code some Python</h3>
+            <div>
+                <form>
+                    <textarea name="codepython"
+                              rows="4"
+                              cols="36"
+                              placeholder='Ask for code here..'></textarea>
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'codepython' %}"
+                            hx-include="[name='codepython']"
+                            hx-target="#fromcodingmachine">Get the Code&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                    src="{% static 'spinner.gif' %}"
+                                                                                style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="fromcodingmachine"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter" id="storycubes">
+        <div class="w3-padding" >
+            <img src="{% static 'storycubes.png' %}" style="width: 300px"><h3>&nbsp;Play StoryCubes</h3>
+            <div>
+                <form>
+                    <textarea id="roll" name="roll" cols="36"></textarea>
+                    <button type="submit"
+                            class="w3-margin-top w3-margin-bottom"
+                            hx-get="{% url 'rolldicies' %}"
+                            hx-target="#roll">Roll StoryCubes</button>
+                    <div class="w3-row">
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_1" name="storystyle" value="Fantasy">
+                        <label for="rb_1">Fantasy</label>
+                      </div>
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_2" name="storystyle" value="Bedtime">
+                        <label for="rb_2">Bedtime</label>
+                      </div>
+                    </div>
+                    <div class="w3-row">
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_3" name="storystyle" value="Scientific">
+                        <label for="rb_3">Scientific</label>
+                      </div>
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_4" name="storystyle" value="Holiday">
+                        <label for="rb_4">Holiday</label>
+                      </div>
+                    </div>
+                    <div class="w3-row">
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_5" name="storystyle" value="Workaholic" checked>
+                        <label for="rb_5">Workaholic</label>
+                      </div>
+                      <div class="w3-col s6">
+                        <input type="radio" id="rb_6" name="storystyle" value="Neutral" checked>
+                        <label for="rb_6">Neutral</label>
+                      </div>
+                    </div>
+                    <button type="submit"
+                                class="w3-margin-top"
+                            hx-get="{% url 'storycubesstory' %}"
+                            hx-include="[name='roll'], [name='storystyle']"
+                            hx-target="#fromstorycubes">&nbsp;1. Get Story&nbsp;<img class="htmx-indicator w3-circle"
+                                                                            src="{% static 'luke.gif' %}"
+                                                                        style="width: 36px"></button>
+                    <button type="submit"
+                                class="w3-margin-top"
+                                hx-get="{% url 'storycubesimage' %}"
+                                hx-include="[name='readme'], [name='storystyle']"
+                                hx-target="#storycubekuva">&nbsp;2. Get image&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                    src="{% static 'luke.gif' %}"
+                                                                                style="width: 36px"></button>
+                </form>
+                <div id="fromstorycubes"></div>
+                <div id="storycubekuva" class="w3-padding"></div>
+            </div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter" id="deckofcards">
+        <div class="w3-padding" >
+            <div class="w3-row">
+                <div class="w3-col s2">
+                    <img src="{% static 'deck.png' %}" class="icon">
+                </div>
+                <div class="w3-col s6">
+                    <h3>Deck of Cards</h3><p class="w3-small">(AI's not perfect)</p>
+                </div>
+            </div>
+            <div id="cards" class="w3-padding"></div>
+            <div>
+                <form>
+                    <button type="submit"
+                                class="w3-margin-top"
+                                hx-get="{% url 'schufflecards' %}"
+                                hx-target="#cards">&nbsp;Schuffle&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                    src="{% static 'spinner.gif' %}"
+                                                                                style="width: 36px"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(document).ready(function() {
+        $('#name').focus();
+    });
+</script>

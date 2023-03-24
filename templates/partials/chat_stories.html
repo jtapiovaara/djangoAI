@@ -1,0 +1,11 @@
+<div class="w3-container" style="height: 120px; overflow-y: scroll;">
+ {% for i in context.stories %}
+     <p style="width: 300px;">
+         <a hx-get="{% url 'chatmodal' i.id %}"
+            hx-target="body"
+            hx-swap="beforeend"
+            style="text-decoration: none;
+                        cursor: pointer;">{{ i.name }}</a>&nbsp;
+     </p>
+{% endfor %}
+</div>

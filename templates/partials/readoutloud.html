@@ -1,0 +1,6 @@
+<textarea name="readme" rows="10" cols="36" style="border: none">{{context.result}}</textarea>
+<div>
+    <button class="w3-center"
+            hx-get="{% url 'readoutloud' %}"
+            hx-include="[name='readme']">Read it out</button>
+</div>

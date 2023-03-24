@@ -1,0 +1,10 @@
+<img src="{{context.storycube_url}}" style="width: 250px">
+{#<form enctype="multipart/form-data">#}
+<form>
+    {% csrf_token %}
+    <textarea name="storycube_url" hidden>{{context.storycube_url}}</textarea>
+    <button type="submit"
+            class="w3-margin-top"
+            hx-post="{% url 'savestory' %}"
+            hx-include="[name='readme'],[name='roll'],[name='storystyle'],[name='storycube_url']">Save story</button>
+</form>
