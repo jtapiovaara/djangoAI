@@ -8,6 +8,7 @@ import openai
 import random
 import gtts
 from playsound import playsound
+import pprint
 import re
 import json
 
@@ -24,8 +25,9 @@ model_completions = 'text-davinci-003'
 # model_chat = 'gpt-3.5-turbo'
 model_chat = 'gpt-4'
 
-user_talks = []
-ai_talks = []
+# user_talks = []
+# ai_talks = []
+turbomode_messages = [{"role": "system", "content": ""}]
 
 
 def getimage(request):
@@ -48,7 +50,7 @@ def getimage(request):
     r = openai.Image.create(
         prompt=f'{prompt}',
         n=1,
-        size='512x512')
+        size='256x256')
     image_url = r['data'][0]['url']
 
     return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
@@ -229,6 +231,8 @@ def turbomode(request):
     if request.method == "POST":
         systemcontent = Personality.objects.get(name='ai').character
         stylemode = request.POST["stylemode"]
+        user = 'User'
+        assistant = stylemode.capitalize()
 
         if stylemode == 'emilia':
             systemcontent = Personality.objects.get(name='emilia').character
@@ -245,37 +249,37 @@ def turbomode(request):
 
         chatquery = request.POST["fast"]
         if 'this_chat' in request.session:
-            request.session['this_chat'] += [f'\nHuman: {chatquery}']
-
+            request.session['this_chat'] += f'{user}: {chatquery}'
         else:
-            request.session['this_chat'] = [f'Human: {chatquery}']
-        # print(user_talks)
-        user_talks.append(f'{chatquery}')
-        # print(user_talks)
-        content_query = request.session['this_chat']
+            request.session['this_chat'] = f'{user}: {chatquery}'
 
-        start_sequence = "\nAI:"
-        restart_sequence = "\nHuman: "
+        turbomode_messages[0]['content'] = f"{systemcontent}"
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"{chatquery}"
+            }
+        )
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
-            messages=[
-                {"role": "system", "content": f"{systemcontent}"},
-                {"role": "user", "content": f"{user_talks}"},
-                {"role": "assistant", "content": f"{ai_talks}"},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
-            ]
+            messages=turbomode_messages,
         )
 
         reply = completion.choices[0].message['content']
-        # print(completion)
-        # request.session['this_chat'] += [f'\n{reply}']
-        request.session['this_chat'] += [f'\nAssistant: {reply}']
-        # print(ai_talks)
-        ai_talks.append(f'{reply}')
-        # print(ai_talks)
+        request.session['this_chat'] += f'{assistant}: {reply}'
+        turbomode_messages.append(
+            {
+                "role": "assistant",
+                "content": f"{reply}"
+            }
+        )
+
         chat_reply = request.session['this_chat']
+        # pp = pprint.PrettyPrinter(indent=4)
+        # pp.pprint(turbomode_messages)
+        # print(completion)
+        # print(chat_reply)
         context = {
             'chat_reply': chat_reply,
         }
@@ -286,11 +290,13 @@ def turbomode(request):
 def flushchat(request):
     """ Tyhjennetään (alustetaan) luettujen lista"""
     if 'this_chat' in request.session:
-        chats_dialoque = str(request.session['this_chat'])
-        chats_name = chats_dialoque[9:45]
+        # chats_dialoque = str(request.session['this_chat'])
+        chats_dialoque = request.session['this_chat']
+        chats_name = chats_dialoque[:23]
         chat = Chat.talteen(chats_name, chats_dialoque)
         chat.save()
         del request.session['this_chat']
+        turbomode_messages = [{"role": "system", "content": ""}]
 
         return HttpResponse('&nbsp;Saved&nbsp;&&nbsp;flushed&nbsp;☑&nbsp;')
     return render(request, "index.html")
@@ -306,10 +312,22 @@ def chatstories(request):
 
 def chatmodal(request, id):
     """ Chatin sisältö"""
-    chat_info = Chat.objects.get(id=id)
+    chat = Chat.objects.get(id=id)
+    chat_name = chat.name
+    chat_info = chat.dialoque
+    chat_time = chat.timestamp
+    osissa = chat_info.split("', '")
+    print(osissa[0][2:])
+    print(osissa[1:-2])
+    print(osissa[-1][:-2])
 
     context = {
+        'chat_name': chat_name,
         'chat_info': chat_info,
+        'chat_time': chat_time,
+        'osissa_first': osissa[0][2:],
+        'osissa': osissa[1:-2],
+        'osissa_last': osissa[-1][:-2],
     }
     return render(request, 'partials/chat_modal.html', {'context': context})
 
