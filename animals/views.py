@@ -50,7 +50,7 @@ def getimage(request):
     r = openai.Image.create(
         prompt=f'{prompt}',
         n=1,
-        size='256x256')
+        size='512x512')
     image_url = r['data'][0]['url']
 
     return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
@@ -178,9 +178,9 @@ def kirjallisuus(request):
             model=model_chat,
             messages=[
                 {"role": "system", "content": "You are a literature reviewer understanding especially well classical "
-                                              "american literature. You also have a great sense of classical poetry"},
-                {"role": "user", "content": f"Please write a short summary of book {kirja} by {kirjailija}. At the "
-                                            f"end add representative poem about book {kirja}"},
+                                              "american literature."},
+                {"role": "user", "content": f"Please write a short summary of book {kirja} by {kirjailija} using "
+                                            f"his/her own writing style. Limit your answer to 100 words"},
                 # {"role": "assistant", "content": f"{ai_talks}"},
                 # {"role": "user", "content": f"{chatquery}"},
                 # {"role": "user", "content": f"{content_query}"},
@@ -188,9 +188,24 @@ def kirjallisuus(request):
         )
 
         reply = completion.choices[0].message['content']
-        # print(completion)
+        print(reply)
 
-        return HttpResponse(f'About {kirja}:<p>{reply}</p>')
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=[
+                {"role": "system", "content": "You are a writer with great sence of classical poetry"},
+                {"role": "user", "content": f"Please write a representative poem about book {kirja} by {kirjailija}."
+                                            f" Limit your answer to 50 words"},
+                # {"role": "assistant", "content": f"{ai_talks}"},
+                # {"role": "user", "content": f"{chatquery}"},
+                # {"role": "user", "content": f"{content_query}"},
+            ]
+        )
+
+        poem = completion.choices[0].message['content']
+        print(poem)
+
+        return HttpResponse(f'<p>{reply}</p><p><pre>{poem}</pre></p>')
 
     return render(request, "index.html")
 
@@ -249,7 +264,7 @@ def turbomode(request):
 
         chatquery = request.POST["fast"]
         if 'this_chat' in request.session:
-            request.session['this_chat'] += f'{user}: {chatquery}'
+            request.session['this_chat'] += f'/n{user}: {chatquery}'
         else:
             request.session['this_chat'] = f'{user}: {chatquery}'
 
@@ -267,7 +282,7 @@ def turbomode(request):
         )
 
         reply = completion.choices[0].message['content']
-        request.session['this_chat'] += f'{assistant}: {reply}'
+        request.session['this_chat'] += f'/n{assistant}: {reply}'
         turbomode_messages.append(
             {
                 "role": "assistant",
@@ -276,12 +291,12 @@ def turbomode(request):
         )
 
         chat_reply = request.session['this_chat']
+        chat_rows = re.split("/n", chat_reply)
         # pp = pprint.PrettyPrinter(indent=4)
         # pp.pprint(turbomode_messages)
         # print(completion)
-        # print(chat_reply)
         context = {
-            'chat_reply': chat_reply,
+            'chat_rows': chat_rows,
         }
         return render(request, 'partials/chat_dialogue.html', {'context': context})
     return render(request, "index.html")
@@ -290,7 +305,6 @@ def turbomode(request):
 def flushchat(request):
     """ Tyhjennetään (alustetaan) luettujen lista"""
     if 'this_chat' in request.session:
-        # chats_dialoque = str(request.session['this_chat'])
         chats_dialoque = request.session['this_chat']
         chats_name = chats_dialoque[:23]
         chat = Chat.talteen(chats_name, chats_dialoque)
@@ -316,20 +330,38 @@ def chatmodal(request, id):
     chat_name = chat.name
     chat_info = chat.dialoque
     chat_time = chat.timestamp
-    osissa = chat_info.split("', '")
-    print(osissa[0][2:])
-    print(osissa[1:-2])
-    print(osissa[-1][:-2])
+    # user = 'User'
+    # personality = str(Chat.objects.get(id=id).personality).capitalize()
+    chat_rows = re.split("/n", chat_info)
 
     context = {
+        'chat_id': id,
         'chat_name': chat_name,
-        'chat_info': chat_info,
         'chat_time': chat_time,
-        'osissa_first': osissa[0][2:],
-        'osissa': osissa[1:-2],
-        'osissa_last': osissa[-1][:-2],
+        'chat_rows': chat_rows,
     }
     return render(request, 'partials/chat_modal.html', {'context': context})
+
+
+def chatimage(request, chat_id):
+    openai.api_key = OPENAI_API_KEY
+    print(chat_id)
+    if request.method == 'GET':
+        modal = Chat.objects.get(id=chat_id).personality.character
+        print(modal)
+        prompt = f'Generate a creative and engaging Dall-E prompt for an image using {modal} as your inspiration.'
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=[
+                {"role": "system", "content": 'You are system that is always helpful and creative'},
+                {"role": "user", "content": f"{prompt}"},
+            ]
+        )
+
+        reply = completion.choices[0].message['content']
+        print(reply)
+        return render(request, "index.html")
+    return render(request, "index.html")
 
 
 def codepython(request):
@@ -471,9 +503,9 @@ def storycubesstory(request):
     """ Muutettu käyttämään GPT-4 mallia.  Esimerkki vastausten tasossa on dokumentissa 'Diff_btw_gpt35_gpt4_Story' """
     openai.api_key = OPENAI_API_KEY
 
-    if request.method == 'GET':
-        roll = request.GET.get('roll', '')
-        storystyle = request.GET.get('storystyle', '')
+    if request.method == "POST":
+        roll = request.POST['roll']
+        storystyle = request.POST['storystyle']
         story = Story.objects.get(name=f'{storystyle}')
         name = story.name
         style = story.styles
@@ -492,14 +524,11 @@ def storycubesstory(request):
             messages=[
                 {"role": "system", "content": f"Use {name}, {style} as a theme"},
                 {"role": "user", "content": f"Write a short story containing the following words: {roll}."},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
             ]
         )
 
         reply = completion.choices[0].message['content']
         # print(reply)
-
         # print(f'Query Tokens: {response.usage.prompt_tokens}\nResponse Tokens: {response.usage.completion_tokens}')
         context = {
             'result': reply
@@ -537,12 +566,13 @@ def storycubesimage(request):
 
     openai.organization = OPENAI_ORG
     openai.api_key = OPENAI_API_KEY
-    if request.method == 'GET':
-        to_img = request.GET.get("readme", "")
-        style = request.GET.get('storystyle', '')
+
+    if request.method == "POST":
+        to_img = request.POST['readme']
+        style = request.POST['storystyle']
         styles = Story.objects.get(name=f'{style}')
-        prompt = f'create detailed representative fotorealistic cartoon image following story "{to_img[0:240]}". Use ' \
-                 f'styles ({styles}) for theme'
+        prompt = f'detailed representative fotorealistic illustration by Moebius following story "{to_img[0:240]}". ' \
+                 f'Use styles ({styles}) for theme'
         r = openai.Image.create(
             prompt=f'{prompt}',
             n=1,
@@ -607,3 +637,73 @@ def schufflecards(request):
                         f'photorealistic"</small></p><p><small>Cards were picked randomly by my code</small></p>')
 
 
+def askbuffet(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        chatquery = request.GET.get("questiontowarrenbuffet", '')
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "You are a talented and polite Financial Analyst knowing only the OMX Helsinki Stocks. You can "
+                       "perform at least the following indicators: P/E, P/B, EV/EBIT and DIV/P, which you always "
+                       "include in your answer (in html tagged table format) even if not asked for. Give short "
+                       "analysis on these indicators. Use data from last complete year you can reach at the end of "
+                       "the year (book closing day).  At the end of your report please add short summary of "
+                       "financials for last three years at the end of your report."
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"analyse {chatquery}"
+            }
+        )
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=turbomode_messages,
+        )
+
+        reply = completion.choices[0].message['content']
+
+        return HttpResponse(f'<p>Warren thinks you are a smartass!</p>{reply}')
+    return render(request, "index.html")
+
+
+def justdraw(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        drawrequest = request.GET.get("drawme", '')
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "You are able to draw some ASCII art"
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"use {drawrequest} as your ispiration"
+            }
+        )
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=turbomode_messages,
+        )
+        print(completion)
+        reply = completion.choices[0].message['content']
+        context = {
+            'reply': reply,
+        }
+
+        return render(request, 'partials/drawascii.html', {'context': context})
+    return render(request, "index.html")
+
+# Some items to utilize chatGPT "Latest" prompts. Site address and three addresses to a speciofic prompt text
+# https://chat.openai.com/chat#/all/0
+# /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[1]/div[1]/text()
+# /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[2]/div[1]/text()
+# /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[3]/div[1]/text()
+
+    # geo_ip_api_url = 'http://ip-api.com/json/'
+    # ip_to_search = esimerkki_ip_suomi
+    #
+    # req = urllib.request.Request(geo_ip_api_url + ip_to_search)
+    # response = urllib.request.urlopen(req).read()

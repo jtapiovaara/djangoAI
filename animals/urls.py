@@ -19,4 +19,7 @@ urlpatterns = [
     path('storycubesimage/', views.storycubesimage, name='storycubesimage'),
     path('savestory/', views.savestory, name='savestory'),
     path('schufflecards/', views.schufflecards, name='schufflecards'),
+    path('askbuffet/', views.askbuffet, name='askbuffet'),
+    path('justdraw/', views.justdraw, name='justdraw'),
+    path('chatimage/<chat_id>', views.chatimage, name='chatimage'),
 ]

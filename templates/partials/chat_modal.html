@@ -2,17 +2,19 @@
         <div class="w3-modal-content">
             <div class="w3-container w3-margin w3-padding">
             <h3>{{ context.chat_name }}..</h3>
-            <button _="on click trigger closeModal">Read loud</button>
-                <small>{{ context.chat_info|safe }}</small>
-{#                <p>{{ context.osissa_first }}</p>#}
-{#                {%  for i in context.osissa %}#}
-{#                        {{ i }}#}
-{#                {% endfor %}#}
-{#                <p>{{ context.osissa_last }}</p>#}
+                {%  for i in context.chat_rows %}
+                    {% if i.0 == 'U' %}
+                        <p><small>{{ i }}</small></p>
+                    {% else %}
+                        <small>{{ i }}</small>
+                    {% endif %}
+                {% endfor %}
             <p>{{ context.chat_time }}</p>
             <hr>
+            <button _="on click trigger closeModal">Read loud</button>
             <button _="on click trigger closeModal">Share</button>
-            <button _="on click trigger closeModal">Print</button>
+            <button _="on click trigger closeModal"
+                    hx-get="{% url 'chatimage' context.chat_id %}">Print</button>
             <button _="on click trigger closeModal">Close</button>
             </div>
         </div>

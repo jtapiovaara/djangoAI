@@ -1,4 +1,13 @@
-
-<div class="w3-container">
-    <p>{{ context.code_result|linebreaksbr}}</p>
+<div class="w3-margin-bottom">
+<textarea id="coodii" rows="20" cols="36">{{ context.code_result|linebreaksbr}}</textarea>
+<button class="w3-left" onclick="myFunction()">Copy code</button>
 </div>
+<script>
+    function myFunction() {
+        let copyText = document.getElementById("coodii");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        {#alert("Copied the text: " + copyText.value);#}
+    }
+</script>

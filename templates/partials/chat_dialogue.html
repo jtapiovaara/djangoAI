@@ -1,4 +1,7 @@
-
-<p>{{ context.chat_reply }}</p>
-
-
+{%  for i in context.chat_rows %}
+    {% if i.0 == 'U' %}
+        <p><small>{{ i }}</small></p>
+    {% else %}
+        <small>{{ i }}</small>
+    {% endif %}
+{% endfor %}

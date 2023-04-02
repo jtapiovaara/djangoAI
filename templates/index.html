@@ -20,16 +20,25 @@
     input[type="text"] {
         width: 300px;
     }
+    input[type="radio"] {
+        width: 30px;
+        height: 30px;
+    }
+
     button[type="submit"] {
         width: 300px;
         padding: 12px 0;
         color: #fff;
-        background-color: #006680;
-        {#background-color: #10a37f;#}
+        {#background-color: #006680;#}
+        background-color: #446680;
         border: none;
         border-radius: 4px;
         text-align: center;
         cursor: pointer;
+        opacity: 0.7;
+    }
+    label {
+        font-size: larger;
     }
     p {
         width: 320px;
@@ -131,7 +140,7 @@
     </header>
 </div>
 <br>
-<div class="w3-container">
+<div class="w3-container w3-green">
     <div class="w3-container w3-cell w3-quarter" id="cats">
         <div class="w3-padding" >
             <h3><img src="{% static 'cat.png' %}"
@@ -149,17 +158,61 @@
                 <button type="submit"
                         class="w3-margin-top"
                         value="1. Generate names">1. Generate names</button>
+            </form>
+            <form>
                 <button type="submit" id="haekissakuva" class="w3-margin-top"
                         hx-get="{% url 'getimage' %}"
                         hx-include="[name='animal']"
                         hx-target="#kuva">2. Get picture&nbsp;<img class="htmx-indicator w3-circle"
-                                                                        src="{% static 'process.gif' %}"
-                                                                    style="width: 24px"></button>
+                                                                   src="{% static 'process.gif' %}"
+                                                                   style="width: 24px"></button>
+
             </form>
             <div id="result" class="w3-margin-top"></div>
             <div id="kuva"></div>
         </div>
     </div>
+    <div class="w3-container w3-cell w3-quarter" id="books">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'books.png' %}"
+                 class="icon">&nbsp;About books</h3>
+            <div>
+                <form>
+                    <input type="text" name="kirjalija" placeholder="Yhdysvaltalainen kirjailija..">
+                    <input type="text" name="kirja" placeholder="Teos..">
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'kirjallisuus' %}"
+                            hx-include="[name='kirjailija'], [name='kirja']"
+                            hx-target="#kirjasta">Lets go Bookworm&nbsp;<img class="htmx-indicator w3-circle"
+                                                                             src="{% static 'books.gif' %}"
+                                                                             style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="kirjasta"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="stars">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'stars.png' %}"
+                 class="icon">&nbsp;Ask about stars</h3>
+            <div>
+                <form>
+                    <input type="text" name="stars" placeholder="Astronomy..">
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'stars' %}"
+                            hx-include="[name='stars']"
+                            hx-target="#fromstars">Send AI to stars&nbsp;<img class="htmx-indicator w3-circle"
+                                                                              src="{% static 'process.gif' %}"
+                                                                              style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="fromstars"></div>
+        </div>
+    </div>
+</div>
+<div class="w3-container w3-yellow">
     <div class="w3-container w3-cell w3-quarter" id="arts">
         <div class="w3-padding" >
             <h3><img src="{% static 'colosseum.png' %}"
@@ -173,7 +226,7 @@
                     <div class="w3-row">
                       <div class="w3-col s6">
                         <input type="radio" id="rb_1" name="tyyli" value="Impressionism">
-                        <label for="rb_1">Impressionism</label>
+                        <label for="rb_1">Impress</label>
                       </div>
                       <div class="w3-col s6">
                         <input type="radio" id="rb_6" name="tyyli" value="Abstract Expressionism">
@@ -183,7 +236,7 @@
                     <div class="w3-row">
                       <div class="w3-col s6">
                         <input type="radio" id="rb_2" name="tyyli" value="Expressionism">
-                        <label for="rb_2">Expressionism</label>
+                        <label for="rb_2">Express</label>
                       </div>
                       <div class="w3-col s6">
                         <input type="radio" id="rb_3" name="tyyli" value="Fauvism">
@@ -205,8 +258,8 @@
                             hx-get="{% url 'kysymys' %}"
                             hx-include="[name='kysymys'], [name='tyyli']"
                             hx-target="#vastaus">Send&nbsp;<img class="htmx-indicator w3-circle"
-                                                                                    src="{% static 'spinner.gif' %}"
-                                                                                style="width: 24px"></button>
+                                                                src="{% static 'spinner.gif' %}"
+                                                                style="width: 24px"></button>
                 </form>
             </div>
             <div id="vastaus"></div>
@@ -223,48 +276,75 @@
             <div id="newpainting" class="w3-margin"></div>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter"  id="books">
+    <div class="w3-container w3-cell w3-quarter" id="coding">
         <div class="w3-padding" >
-            <h3><img src="{% static 'books.png' %}"
-                 class="icon">&nbsp;About books</h3>
+            <h3><img src="{% static 'computer.png' %}"
+                 class="icon">&nbsp;Code something, well, anything..</h3>
             <div>
                 <form>
-                    <input type="text" name="kirjalija" placeholder="Kirjailija..">
-                    <input type="text" name="kirja" placeholder="Kirja..">
+                    <textarea name="codepython"
+                              rows="4"
+                              cols="36"
+                              onfocus="this.value=''"
+                              placeholder='Ask for code here..'></textarea>
                     <button type="submit"
                             class="w3-margin-top"
-                            hx-get="{% url 'kirjallisuus' %}"
-                            hx-include="[name='kirjailija'], [name='kirja']"
-                            hx-target="#kirjasta">Lets go Bookworm&nbsp;<img class="htmx-indicator w3-circle"
-                                                                             src="{% static 'books.gif' %}"
-                                                                             style="width: 24px"></button>
+                            hx-get="{% url 'codepython' %}"
+                            hx-include="[name='codepython']"
+                            hx-target="#fromcodingmachine">Get the Code&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                  src="{% static 'spinner.gif' %}"
+                                                                                  style="width: 24px"></button>
                 </form>
             </div>
-            <div id="kirjasta"></div>
+            <div id="fromcodingmachine"></div>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="stars">
+    <div class="w3-container w3-cell w3-quarter" id="warren">
         <div class="w3-padding" >
-            <h3><img src="{% static 'stars.png' %}"
-                 class="icon">&nbsp;Ask about stars</h3>
+            <h3><img src="{% static 'finance.png' %}"
+                 class="icon">&nbsp;Ask Warren Buffet</h3>
+            <div>
+            <p class="w3-small">(Financial Analysis on any Company considering gutoff year 2021)</p>
             <div>
                 <form>
-                    <input type="text" name="stars" placeholder="Astronomy..">
+                    <input type="text"
+                           name="questiontowarrenbuffet"
+                           onfocus="this.value=''"
+                           placeholder="Give HEX 25 Company..">
                     <button type="submit"
                             class="w3-margin-top"
-                            hx-get="{% url 'stars' %}"
-                            hx-include="[name='stars']"
-                            hx-target="#fromstars">Send AI to stars<img class="htmx-indicator w3-circle"
-                                                                        src="{% static 'process.gif' %}"
-                                                                    style="width: 24px"></button>
+                            hx-get="{% url 'askbuffet' %}"
+                            hx-include="[name='questiontowarrenbuffet']"
+                            hx-target="#warrensreply">&nbsp;Send your Q&nbsp;<img class="htmx-indicator w3-circle"
+                                                                                  src="{% static 'spinner.gif' %}"
+                                                                                  style="width: 36px"></button>
                 </form>
             </div>
-            <div id="fromstars"></div>
+            <div id="warrensreply" class="w3-padding"></div>
         </div>
     </div>
 </div>
-<div class="w3-container">
-    <div class="w3-container w3-cell w3-quarter" id="turbo">
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="deckofcards">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'deck.png' %}"
+                     class="icon">&nbsp;Deck of Cards</h3>
+            <p class="w3-small">(AI's not perfect)</p>
+            <div id="cards" class="w3-padding"></div>
+            <div>
+                <form>
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'schufflecards' %}"
+                            hx-target="#cards">&nbsp;Schuffle&nbsp;<img class="htmx-indicator w3-circle"
+                                                                        src="{% static 'spinner.gif' %}"
+                                                                        style="width: 36px"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="w3-container w3-red">
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="turbo">
         <div class="w3-padding" >
             <h3><img src="{% static 'chat.png' %}"
                  class="icon">&nbsp;Chat in Turbo mode</h3>
@@ -272,7 +352,10 @@
             <div>
                 <form>
                     {% csrf_token %}
-                    <input type="text" name="fast" placeholder="Ask anything from GPT-4..">
+                    <input type="text"
+                           name="fast"
+                           onfocus="this.value=''"
+                           placeholder="Ask anything from GPT-4..">
                     <div class="w3-row">
                         <div class="w3-col s6">
                             <input type="radio" id="ai" name="stylemode" value="ai" checked>
@@ -314,8 +397,8 @@
                             hx-post="{% url 'turbomode' %}"
                             hx-include="[name='fast'], [name='stylemode']"
                             hx-target="#fromturbo">Go Turbomode!&nbsp;<img class="htmx-indicator w3-circle"
-                                                                        src="{% static 'spinner.gif' %}"
-                                                                    style="width: 24px"></button>
+                                                                           src="{% static 'spinner.gif' %}"
+                                                                           style="width: 24px"></button>
                 </form>
             </div>
             <div id="flush">
@@ -330,33 +413,12 @@
             <div id="storieslist"></div>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="coding">
-        <div class="w3-padding" >
-            <h3><img src="{% static 'computer.png' %}"
-                 class="icon">&nbsp;Code some Python</h3>
-            <div>
-                <form>
-                    <textarea name="codepython"
-                              rows="4"
-                              cols="36"
-                              placeholder='Ask for code here..'></textarea>
-                    <button type="submit"
-                            class="w3-margin-top"
-                            hx-get="{% url 'codepython' %}"
-                            hx-include="[name='codepython']"
-                            hx-target="#fromcodingmachine">Get the Code&nbsp;<img class="htmx-indicator w3-circle"
-                                                                                    src="{% static 'spinner.gif' %}"
-                                                                                style="width: 24px"></button>
-                </form>
-            </div>
-            <div id="fromcodingmachine"></div>
-        </div>
-    </div>
     <div class="w3-container w3-cell w3-quarter" id="storycubes">
         <div class="w3-padding" >
             <img src="{% static 'storycubes.png' %}" style="width: 300px"><h3>&nbsp;Play StoryCubes</h3>
             <div>
                 <form>
+                    {% csrf_token %}
                     <textarea id="roll" name="roll" cols="36"></textarea>
                     <button type="submit"
                             class="w3-margin-top w3-margin-bottom"
@@ -394,45 +456,55 @@
                     </div>
                     <button type="submit"
                                 class="w3-margin-top"
-                            hx-get="{% url 'storycubesstory' %}"
+                            hx-post="{% url 'storycubesstory' %}"
                             hx-include="[name='roll'], [name='storystyle']"
                             hx-target="#fromstorycubes">&nbsp;1. Get Story&nbsp;<img class="htmx-indicator w3-circle"
-                                                                            src="{% static 'luke.gif' %}"
-                                                                        style="width: 36px"></button>
+                                                                                     src="{% static 'luke.gif' %}"
+                                                                                     style="width: 36px"></button>
                     <button type="submit"
-                                class="w3-margin-top"
-                                hx-get="{% url 'storycubesimage' %}"
-                                hx-include="[name='readme'], [name='storystyle']"
-                                hx-target="#storycubekuva">&nbsp;2. Get image&nbsp;<img class="htmx-indicator w3-circle"
+                            class="w3-margin-top"
+                            hx-post="{% url 'storycubesimage' %}"
+                            hx-include="[name='readme'], [name='storystyle']"
+                            hx-target="#storycubekuva">&nbsp;2. Get image&nbsp;<img class="htmx-indicator w3-circle"
                                                                                     src="{% static 'luke.gif' %}"
-                                                                                style="width: 36px"></button>
+                                                                                    style="width: 36px"></button>
                 </form>
                 <div id="fromstorycubes"></div>
                 <div id="storycubekuva" class="w3-padding"></div>
             </div>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="deckofcards">
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="prompter">
         <div class="w3-padding" >
-            <div class="w3-row">
-                <div class="w3-col s2">
-                    <img src="{% static 'deck.png' %}" class="icon">
-                </div>
-                <div class="w3-col s6">
-                    <h3>Deck of Cards</h3><p class="w3-small">(AI's not perfect)</p>
-                </div>
-            </div>
-            <div id="cards" class="w3-padding"></div>
-            <div>
-                <form>
-                    <button type="submit"
-                                class="w3-margin-top"
-                                hx-get="{% url 'schufflecards' %}"
-                                hx-target="#cards">&nbsp;Schuffle&nbsp;<img class="htmx-indicator w3-circle"
-                                                                                    src="{% static 'spinner.gif' %}"
-                                                                                style="width: 36px"></button>
-                </form>
-            </div>
+            <h3><img src="{% static 'process.gif' %}"
+                 class="icon">&nbsp;Prompter is coming..</h3>
+            <p>You will be able to use any Prompt from chatGPT's dynamic always changing "Latest"-list</p>
+            <p>With your own responsibility that is..</p>
+            <div id="fromstars"></div>
+        </div>
+    </div>
+</div>
+<div class="w3-container w3-purple">
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="drawer">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'asciidog.png' %}"
+                 class="icon">&nbsp;AI can draw ascii</h3>
+            <form>
+                <input type="text"
+                       id="drawascii"
+                       name="drawme"
+                       onfocus="this.value=''"
+                       placeholder="what you want me to draw..">
+                <button type="submit"
+                        hx-get="{% url 'justdraw' %}"
+                        hx-include="[name='drawme']"
+                        hx-target="#asciiart">&nbsp;=>&nbsp;ASCII&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+
+            <div id="asciiart"></div>
         </div>
     </div>
 </div>
