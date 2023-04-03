@@ -46,7 +46,8 @@ def getimage(request):
     openai.organization = OPENAI_ORG
     openai.api_key = OPENAI_API_KEY
     animal_kuvaksi = request.GET.get("animal", "")
-    prompt = f'{animal_kuvaksi} cartoon style naivistic art'
+    prompt = f'{animal_kuvaksi} fotorealistic cool cartoon style'
+    # prompt = f'{animal_kuvaksi} cartoon style naivistic art'
     r = openai.Image.create(
         prompt=f'{prompt}',
         n=1,
@@ -246,6 +247,7 @@ def turbomode(request):
     if request.method == "POST":
         systemcontent = Personality.objects.get(name='ai').character
         stylemode = request.POST["stylemode"]
+        request.session['personality'] = stylemode
         user = 'User'
         assistant = stylemode.capitalize()
 
@@ -307,9 +309,10 @@ def flushchat(request):
     if 'this_chat' in request.session:
         chats_dialoque = request.session['this_chat']
         chats_name = chats_dialoque[:23]
-        chat = Chat.talteen(chats_name, chats_dialoque)
+        chat = Chat.talteen(chats_name, chats_dialoque, request.session['personality'])
         chat.save()
         del request.session['this_chat']
+        del request.session['personality']
         turbomode_messages = [{"role": "system", "content": ""}]
 
         return HttpResponse('&nbsp;Saved&nbsp;&&nbsp;flushed&nbsp;☑&nbsp;')
@@ -640,20 +643,21 @@ def schufflecards(request):
 def askbuffet(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        chatquery = request.GET.get("questiontowarrenbuffet", '')
+        company = request.GET.get("questiontowarrenbuffet", '')
         turbomode_messages[0] = {
             "role": "system",
-            "content": "You are a talented and polite Financial Analyst knowing only the OMX Helsinki Stocks. You can "
-                       "perform at least the following indicators: P/E, P/B, EV/EBIT and DIV/P, which you always "
-                       "include in your answer (in html tagged table format) even if not asked for. Give short "
-                       "analysis on these indicators. Use data from last complete year you can reach at the end of "
-                       "the year (book closing day).  At the end of your report please add short summary of "
-                       "financials for last three years at the end of your report."
+            "content": "You are a talented and polite Financial Analyst knowing only the OMX Helsinki Stocks. You will"
+                       "use book closing day data that you have access to, 2020 or 2021. You can perform at least the"
+                       "following indicators: P/E, P/B, EV/EBIT and DIV/P, which you always"
+                       "include in your answer (in html tagged table format) even if not asked for. First present the "
+                       f"{company} with few words. Then give short analysis on the latest indicators. In a separate "
+                       f"paragraph at the end of your report please add"
+                       "short summary of book closing day financials over three earlier years."
         }
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"analyse {chatquery}"
+                "content": f"analyse {company}"
             }
         )
 
@@ -694,6 +698,33 @@ def justdraw(request):
         }
 
         return render(request, 'partials/drawascii.html', {'context': context})
+    return render(request, "index.html")
+
+
+def getscience(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        scienceq = request.GET.get("scienceq", '')
+        prompt = f'provide me with max 8 references and links on {scienceq} field'
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "Answer always correctly"
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"{prompt}. Reply in html table format."
+            }
+        )
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=turbomode_messages,
+        )
+        # print(completion)
+        reply = completion.choices[0].message['content']
+
+        return HttpResponse(f'{reply}')
     return render(request, "index.html")
 
 # Some items to utilize chatGPT "Latest" prompts. Site address and three addresses to a speciofic prompt text

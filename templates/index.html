@@ -178,8 +178,8 @@
                  class="icon">&nbsp;About books</h3>
             <div>
                 <form>
-                    <input type="text" name="kirjalija" placeholder="Yhdysvaltalainen kirjailija..">
-                    <input type="text" name="kirja" placeholder="Teos..">
+                    <input type="text" name="kirjalija" placeholder="American writer..">
+                    <input type="text" name="kirja" placeholder="Book..">
                     <button type="submit"
                             class="w3-margin-top"
                             hx-get="{% url 'kirjallisuus' %}"
@@ -505,6 +505,29 @@
             </form>
 
             <div id="asciiart"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="sciences">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'science.png' %}"
+                 class="icon">&nbsp;Get Science papers</h3>
+                <p><small>(like 'sustainability in it-business')</small></p>
+            <form>
+                <input type="text"
+                       id="sciencequestions"
+                       name="scienceq"
+                       onfocus="this.value=''"
+                       placeholder="give field of science..">
+                <button type="submit"
+                        hx-get="{% url 'getscience' %}"
+                        hx-include="[name='scienceq']"
+                        hx-target="#sciencerefs">&nbsp;=>&nbsp;Get papers&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'books.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+
+            <div id="sciencerefs"></div>
         </div>
     </div>
 </div>

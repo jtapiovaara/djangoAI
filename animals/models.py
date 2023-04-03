@@ -23,8 +23,8 @@ class Chat(models.Model):
         return self.name
 
     @classmethod
-    def talteen(cls, name, dialoque):
-        chat = cls(name=name, dialoque=dialoque)
+    def talteen(cls, name, dialoque, personality):
+        chat = cls(name=name, dialoque=dialoque, personality_id=Personality.objects.get(name__exact=personality).id)
         return chat
 
 

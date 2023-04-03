@@ -22,4 +22,5 @@ urlpatterns = [
     path('askbuffet/', views.askbuffet, name='askbuffet'),
     path('justdraw/', views.justdraw, name='justdraw'),
     path('chatimage/<chat_id>', views.chatimage, name='chatimage'),
+    path('getscience/', views.getscience, name='getscience'),
 ]
