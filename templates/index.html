@@ -8,11 +8,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <link rel="stylesheet" href="{% static 'main.css'%}">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <script src="https://unpkg.com/htmx.org@1.8.6"></script>
+{#    <script src="https://unpkg.com/htmx.org@1.8.6"></script>#}
+    <script src="{% static 'js/htmx.min.js' %}"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.8"></script>
 </head>
 <style>
-    header {
+    footer {
         position: fixed;
         width: 100%;
         background-color: #8e8ea0;
@@ -134,12 +135,6 @@
     }
 </style>
 <body>
-<div class="w3-center">
-    <header>
-        <small title="Now using models:&nbsp;{{ context.model_coding }},&nbsp;{{ context.model_completions }},&nbsp;{{ context.model_chat }}">OpenAI tools <b>chatGPT</b> & <b>DALLE2</b></small>
-    </header>
-</div>
-<br>
 <div class="w3-container w3-green">
     <div class="w3-container w3-cell w3-quarter" id="cats">
         <div class="w3-padding" >
@@ -391,6 +386,10 @@
                             <input type="radio" id="marv" name="stylemode" value="drunken" >
                             <label for="drunken" title="AM heer to jooiy --burp-">Bottle Jim&nbsp;</label>
                         </div>
+                        <div class="w3-col s6">
+                            <input type="radio" id="marv" name="stylemode" value="zlatan" >
+                            <label for="zlatan" title="You are the best and you know it">Zlatan&nbsp;</label>
+                        </div>
                     </div>
                     <button type="submit"
                             class="w3-margin-top"
@@ -411,6 +410,7 @@
                         hx-target="#storieslist">&nbsp;Read stories&nbsp;</button>
             </div>
             <div id="storieslist"></div>
+            <div id="coolimage"></div>
         </div>
     </div>
     <div class="w3-container w3-cell w3-quarter" id="storycubes">
@@ -426,8 +426,8 @@
                             hx-target="#roll">Roll StoryCubes</button>
                     <div class="w3-row">
                       <div class="w3-col s6">
-                        <input type="radio" id="rb_1" name="storystyle" value="Fantasy">
-                        <label for="rb_1">Fantasy</label>
+                        <input type="radio" id="rb_1" name="storystyle" value="Neutral" checked>
+                        <label for="rb_1">Neutral</label>
                       </div>
                       <div class="w3-col s6">
                         <input type="radio" id="rb_2" name="storystyle" value="Bedtime">
@@ -446,12 +446,12 @@
                     </div>
                     <div class="w3-row">
                       <div class="w3-col s6">
-                        <input type="radio" id="rb_5" name="storystyle" value="Workaholic" checked>
+                        <input type="radio" id="rb_5" name="storystyle" value="Workaholic">
                         <label for="rb_5">Workaholic</label>
                       </div>
                       <div class="w3-col s6">
-                        <input type="radio" id="rb_6" name="storystyle" value="Neutral" checked>
-                        <label for="rb_6">Neutral</label>
+                        <input type="radio" id="rb_6" name="storystyle" value="Fantasy">
+                        <label for="rb_6">Fantasy</label>
                       </div>
                     </div>
                     <button type="submit"
@@ -470,7 +470,7 @@
                                                                                     style="width: 36px"></button>
                 </form>
                 <div id="fromstorycubes"></div>
-                <div id="storycubekuva" class="w3-padding"></div>
+                <div class=w3-margin id="storycubekuva"></div>
             </div>
         </div>
     </div>
@@ -485,28 +485,6 @@
     </div>
 </div>
 <div class="w3-container w3-purple">
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="drawer">
-        <div class="w3-padding" >
-            <h3><img src="{% static 'asciidog.png' %}"
-                 class="icon">&nbsp;AI can draw ascii</h3>
-            <form>
-                <input type="text"
-                       id="drawascii"
-                       name="drawme"
-                       onfocus="this.value=''"
-                       placeholder="what you want me to draw..">
-                <button type="submit"
-                        hx-get="{% url 'justdraw' %}"
-                        hx-include="[name='drawme']"
-                        hx-target="#asciiart">&nbsp;=>&nbsp;ASCII&nbsp;<img class="htmx-indicator w3-circle"
-                                                      src="{% static 'process.gif' %}"
-                                                      style="width: 24px">
-                </button>
-            </form>
-
-            <div id="asciiart"></div>
-        </div>
-    </div>
     <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="sciences">
         <div class="w3-padding" >
             <h3><img src="{% static 'science.png' %}"
@@ -530,6 +508,33 @@
             <div id="sciencerefs"></div>
         </div>
     </div>
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="drawer">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'asciidog.png' %}"
+                 class="icon">&nbsp;AI can draw ascii</h3>
+            <form>
+                <input type="text"
+                       id="drawascii"
+                       name="drawme"
+                       onfocus="this.value=''"
+                       placeholder="what you want me to draw..">
+                <button type="submit"
+                        hx-get="{% url 'justdraw' %}"
+                        hx-include="[name='drawme']"
+                        hx-target="#asciiart">&nbsp;=>&nbsp;ASCII&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+
+            <div id="asciiart"></div>
+        </div>
+    </div>
+</div>
+<div class="w3-center">
+    <footer>
+        <small title="Now using models:&nbsp;{{ context.model_coding }},&nbsp;{{ context.model_completions }},&nbsp;{{ context.model_chat }}">OpenAI tools <b>chatGPT</b> & <b>DALLE2</b></small>
+    </footer>
 </div>
 </body>
 <script>

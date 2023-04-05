@@ -45,16 +45,17 @@ def getimage(request):
 
     openai.organization = OPENAI_ORG
     openai.api_key = OPENAI_API_KEY
-    animal_kuvaksi = request.GET.get("animal", "")
-    prompt = f'{animal_kuvaksi} fotorealistic cool cartoon style'
-    # prompt = f'{animal_kuvaksi} cartoon style naivistic art'
-    r = openai.Image.create(
-        prompt=f'{prompt}',
-        n=1,
-        size='512x512')
-    image_url = r['data'][0]['url']
+    if request.method == "GET":
+        animal_kuvaksi = request.GET.get("animal", "")
+        prompt = f'{animal_kuvaksi} fotorealistic cool cartoon style'
+        r = openai.Image.create(
+            prompt=f'{prompt}',
+            n=1,
+            size='512x512')
+        image_url = r['data'][0]['url']
 
-    return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
+        return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
+    return render(request, "index.html")
 
 
 def animals(request):
@@ -117,22 +118,12 @@ def kysymys(request):
         kysymyksesi = request.GET.get("kysymys", "")
         tyyli = request.GET.get("tyyli", "")
         tyyli_ext = 'Contemporary'
-        # response = openai.Completion.create(
-        #     engine=engine_completions,
-        #     prompt=f'{kysymyksesi} {tyyli} {tyyli_ext}',
-        #     temperature=0.6,
-        #     max_tokens=150,
-        # )
-        # result = response.choices[0].text[:800]
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=[
                 {"role": "system", "content": f"You are an arts expert who highly values {tyyli_ext} art"},
                 {"role": "user", "content": f"{kysymyksesi}. Consider art style: {tyyli}"},
-                # {"role": "assistant", "content": f"{ai_talks}"},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
             ]
         )
 
@@ -167,13 +158,6 @@ def kirjallisuus(request):
     if request.method == 'GET':
         kirjailija = request.GET.get('kirjailija', '')
         kirja = request.GET.get('kirja', '')
-        # response = openai.Completion.create(
-        #     engine=model_completions,
-        #     prompt=f'Assistant, please write a summary of book {kirja} by {kirjailija}',
-        #     temperature=0.2,
-        #     max_tokens=150,
-        # )
-        # tarina = response.choices[0].text
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
@@ -182,9 +166,6 @@ def kirjallisuus(request):
                                               "american literature."},
                 {"role": "user", "content": f"Please write a short summary of book {kirja} by {kirjailija} using "
                                             f"his/her own writing style. Limit your answer to 100 words"},
-                # {"role": "assistant", "content": f"{ai_talks}"},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
             ]
         )
 
@@ -197,9 +178,6 @@ def kirjallisuus(request):
                 {"role": "system", "content": "You are a writer with great sence of classical poetry"},
                 {"role": "user", "content": f"Please write a representative poem about book {kirja} by {kirjailija}."
                                             f" Limit your answer to 50 words"},
-                # {"role": "assistant", "content": f"{ai_talks}"},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
             ]
         )
 
@@ -215,22 +193,12 @@ def stars(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
         spacethought = request.GET.get('stars', '')
-        # response = openai.Completion.create(
-        #     engine=model_completions,
-        #     prompt=f"{spacethought}, use scientific terms on your answer",
-        #     temperature=0.2,
-        #     max_tokens=250,
-        # )
-        # result = response.choices[0].text[:1600]
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=[
                 {"role": "system", "content": "use scientific terms on your answer"},
                 {"role": "user", "content": f"{spacethought}"},
-                # {"role": "assistant", "content": f"{ai_talks}"},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
             ]
         )
 
@@ -263,6 +231,8 @@ def turbomode(request):
             systemcontent = Personality.objects.get(name='socrates').character
         elif stylemode == 'drunken':
             systemcontent = Personality.objects.get(name='drunken').character
+        elif stylemode == 'zlatan':
+            systemcontent = Personality.objects.get(name='zlatan').character
 
         chatquery = request.POST["fast"]
         if 'this_chat' in request.session:
@@ -348,10 +318,8 @@ def chatmodal(request, id):
 
 def chatimage(request, chat_id):
     openai.api_key = OPENAI_API_KEY
-    print(chat_id)
     if request.method == 'GET':
         modal = Chat.objects.get(id=chat_id).personality.character
-        print(modal)
         prompt = f'Generate a creative and engaging Dall-E prompt for an image using {modal} as your inspiration.'
         completion = openai.ChatCompletion.create(
             model=model_chat,
@@ -361,9 +329,16 @@ def chatimage(request, chat_id):
             ]
         )
 
-        reply = completion.choices[0].message['content']
-        print(reply)
-        return render(request, "index.html")
+        prompt = completion.choices[0].message['content']
+        openai.organization = OPENAI_ORG
+        openai.api_key = OPENAI_API_KEY
+        r = openai.Image.create(
+            prompt=f'{prompt}',
+            n=1,
+            size='512x512')
+        image_url = r['data'][0]['url']
+
+        return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
     return render(request, "index.html")
 
 
@@ -371,24 +346,12 @@ def codepython(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
         codethought = request.GET.get('codepython', '')
-        # response = openai.Completion.create(
-        #     model=model_coding,
-        #     prompt=f'\"\"\"\n{codethought}\n\"\"\"',
-        #     temperature=0,
-        #     max_tokens=450,
-        #     top_p=1,
-        #     frequency_penalty=0,
-        #     presence_penalty=0
-        # )
-        # code_result = response.choices[0].text
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=[
                 {"role": "system", "content": 'You are system that is always using standards'},
                 {"role": "user", "content": f"{codethought}"},
-                # {"role": "user", "content": f"{chatquery}"},
-                # {"role": "user", "content": f"{content_query}"},
             ]
         )
 
@@ -512,15 +475,6 @@ def storycubesstory(request):
         story = Story.objects.get(name=f'{storystyle}')
         name = story.name
         style = story.styles
-        # temp = float(story.temp)
-        # response = openai.Completion.create(
-        #     engine=model_completions,
-        #     prompt=f'Use {name}, {style} as a theme. Write a short story containing the following words: {roll}.',
-        #     temperature=0.8,
-        #     # temperature=temp,
-        #     max_tokens=650,
-        # )
-        # tarina = response.choices[0].text
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
@@ -644,6 +598,7 @@ def askbuffet(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
         company = request.GET.get("questiontowarrenbuffet", '')
+        turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
             "content": "You are a talented and polite Financial Analyst knowing only the OMX Helsinki Stocks. You will"
@@ -676,6 +631,7 @@ def justdraw(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
         drawrequest = request.GET.get("drawme", '')
+        turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
             "content": "You are able to draw some ASCII art"
@@ -691,13 +647,9 @@ def justdraw(request):
             model=model_chat,
             messages=turbomode_messages,
         )
-        print(completion)
         reply = completion.choices[0].message['content']
-        context = {
-            'reply': reply,
-        }
 
-        return render(request, 'partials/drawascii.html', {'context': context})
+        return HttpResponse(f'<pre>{reply}</pre>')
     return render(request, "index.html")
 
 
@@ -706,6 +658,7 @@ def getscience(request):
     if request.method == 'GET':
         scienceq = request.GET.get("scienceq", '')
         prompt = f'provide me with max 8 references and links on {scienceq} field'
+        turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
             "content": "Answer always correctly"
@@ -721,20 +674,18 @@ def getscience(request):
             model=model_chat,
             messages=turbomode_messages,
         )
-        # print(completion)
         reply = completion.choices[0].message['content']
 
         return HttpResponse(f'{reply}')
     return render(request, "index.html")
 
-# Some items to utilize chatGPT "Latest" prompts. Site address and three addresses to a speciofic prompt text
+# Some items to utilize chatGPT "Latest" prompts. Site address and three addresses to a specific prompt text
 # https://chat.openai.com/chat#/all/0
 # /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[1]/div[1]/text()
 # /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[2]/div[1]/text()
 # /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[3]/div[1]/text()
 
-    # geo_ip_api_url = 'http://ip-api.com/json/'
-    # ip_to_search = esimerkki_ip_suomi
-    #
-    # req = urllib.request.Request(geo_ip_api_url + ip_to_search)
-    # response = urllib.request.urlopen(req).read()
+# api_url = 'tähän openai-api'
+# header = tunnistatumisheader-data
+# req = urllib.request.Request(header + api_url)
+# response = urllib.request.urlopen(req).read()
