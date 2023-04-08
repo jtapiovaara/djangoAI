@@ -107,49 +107,6 @@ Names:""".format(
     )
 
 
-def kysymys(request):
-    """ Tässä koitetaan ennakoida ja vaikuttaa vastaukseen muutenkin kuin vain kirjoitetulla kysymyksellä. Voidaan
-    antaa käyttäjän valita kysymyksen aihe (esim. arkkitehtuuri: Alvar Aalto, Cubism, etc.) ja välittää se mukaan.
-    Voidaan myös vaikuttaa/manipuloida kysymystä palvelinpäässä tässä funktiossa. Vaikuttaminen voi olla tietysti myös
-    vaikka ohjattua muualta käsin (tässä muuttujalla 'tyyli_ext)' tai tietokannasta tms. Kiehtovaa."""
-
-    openai.api_key = OPENAI_API_KEY
-    if request.method == "GET":
-        kysymyksesi = request.GET.get("kysymys", "")
-        tyyli = request.GET.get("tyyli", "")
-        tyyli_ext = 'Contemporary'
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
-                {"role": "system", "content": f"You are an arts expert who highly values {tyyli_ext} art"},
-                {"role": "user", "content": f"{kysymyksesi}. Consider art style: {tyyli}"},
-            ]
-        )
-
-        reply = completion.choices[0].message['content']
-        # print(completion)
-
-        return HttpResponse(f'<textarea name="artanswer" rows="7"cols="40" style="border: none">{reply}</textarea>')
-
-    return render(request, "index.html")
-
-
-def tyylitaulu(request):
-    """ This function takes kysymys() result and uses it as a prompt to create DALLE2 image """
-    openai.organization = OPENAI_ORG
-    openai.api_key = OPENAI_API_KEY
-    vastaus_kuvaksi_hx = request.GET.get('artanswer', '')
-    prompt = f'{vastaus_kuvaksi_hx[0:320]}'
-    r = openai.Image.create(
-        prompt=f'{prompt}',
-        n=1,
-        size='256x256')
-    image_url = r['data'][0]['url']
-
-    return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
-
-
 def kirjallisuus(request):
     """ Here we send two separate requests (one for a story and one for a poem) to AI and get the results back in one
     HttpResponse. Also comparing result using different OpenAI Models
@@ -208,6 +165,163 @@ def stars(request):
         return HttpResponse(f'<p>{reply}</p>')
         # return HttpResponse(f'<p>GPT-3.5:&nbsp;{result}</p><p>GPT-4:&nbsp;{reply}</p>')
     return render(request, "index.html")
+
+
+def askanything(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        question = request.GET.get("question", '')
+        prompt = f'provide me with max 350 words answer on question: {question}'
+        turbomode_messages = [{"role": "system", "content": ""}]
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "Answer always correctly"
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"{prompt}"
+            }
+        )
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=turbomode_messages,
+        )
+        reply = completion.choices[0].message['content']
+
+        return HttpResponse(f'<p>{reply}</p>')
+    return render(request, "index.html")
+
+
+def kysymys(request):
+    """ Tässä koitetaan ennakoida ja vaikuttaa vastaukseen muutenkin kuin vain kirjoitetulla kysymyksellä. Voidaan
+    antaa käyttäjän valita kysymyksen aihe (esim. arkkitehtuuri: Alvar Aalto, Cubism, etc.) ja välittää se mukaan.
+    Voidaan myös vaikuttaa/manipuloida kysymystä palvelinpäässä tässä funktiossa. Vaikuttaminen voi olla tietysti myös
+    vaikka ohjattua muualta käsin (tässä muuttujalla 'tyyli_ext)' tai tietokannasta tms. Kiehtovaa."""
+
+    openai.api_key = OPENAI_API_KEY
+    if request.method == "GET":
+        kysymyksesi = request.GET.get("kysymys", "")
+        tyyli = request.GET.get("tyyli", "")
+        tyyli_ext = 'Contemporary'
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=[
+                {"role": "system", "content": f"You are an arts expert who highly values {tyyli_ext} art"},
+                {"role": "user", "content": f"{kysymyksesi}. Consider art style: {tyyli}"},
+            ]
+        )
+
+        reply = completion.choices[0].message['content']
+        # print(completion)
+
+        return HttpResponse(f'<textarea name="artanswer" rows="7"cols="40" style="border: none">{reply}</textarea>')
+
+    return render(request, "index.html")
+
+
+def tyylitaulu(request):
+    """ This function takes kysymys() result and uses it as a prompt to create DALLE2 image """
+    openai.organization = OPENAI_ORG
+    openai.api_key = OPENAI_API_KEY
+    vastaus_kuvaksi_hx = request.GET.get('artanswer', '')
+    prompt = f'{vastaus_kuvaksi_hx[0:320]}'
+    r = openai.Image.create(
+        prompt=f'{prompt}',
+        n=1,
+        size='256x256')
+    image_url = r['data'][0]['url']
+
+    return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
+
+
+def codepython(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        codethought = request.GET.get('codepython', '')
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=[
+                {"role": "system", "content": 'You are system that is always using standards'},
+                {"role": "user", "content": f"{codethought}"},
+            ]
+        )
+
+        reply = completion.choices[0].message['content']
+        # print(reply)
+        context = {
+            'code_result': reply,
+        }
+        return render(request, 'partials/code_python.html', {'context': context})
+    return render(request, "index.html")
+
+
+def askbuffet(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        company = request.GET.get("questiontowarrenbuffet", '')
+        turbomode_messages = [{"role": "system", "content": ""}]
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "You are a talented and polite Financial Analyst knowing only the OMX Helsinki Stocks. You will"
+                       "use book closing day data that you have access to, 2020 or 2021. You can perform at least the"
+                       "following indicators: P/E, P/B, EV/EBIT and DIV/P, which you always"
+                       "include in your answer (in html tagged table format) even if not asked for. First present the "
+                       f"company {company} with few words. Then give short analysis on the latest indicators. In a "
+                       f"separate html <p> paragraph at the end of your report write a short conclusion of book "
+                       f"closing day financials over three earlier years. Name that paragraph 'Summary'."
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"analyse {company}"
+            }
+        )
+
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=turbomode_messages,
+        )
+
+        reply = completion.choices[0].message['content']
+
+        return HttpResponse(f'<p>Warren thinks you are a smartass!</p>{reply}')
+    return render(request, "index.html")
+
+
+def schufflecards(request):
+    openai.organization = OPENAI_ORG
+    openai.api_key = OPENAI_API_KEY
+    cards = [
+        'Diamonds',
+        'Spades',
+        'Hearts',
+        'Clubs',
+    ]
+    ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'Jack', 'Queen', 'King', 'Ace']
+    pick = []
+    i = 0
+
+    while i < 3:
+        card = random.choices(cards)
+        rank = random.choices(ranks)
+        pick.append('{} of {}'.format(rank[0], card[0]))
+        i = i+1
+
+    # print(pick)
+
+    prompt = f'image of a card dealer in leather tie holding cards {pick}. Detailed, photorealistic, 4k'
+    r = openai.Image.create(
+        prompt=f'{prompt}',
+        n=1,
+        size='256x256')
+    image = r['data'][0]['url']
+    return HttpResponse(f'<img src="{image}" style="width: 200px"><p><small>AI is still evolving. Request was for '
+                        f'"image of a card dealer in leather tie holding cards {pick}. Detailed, '
+                        f'photorealistic"</small></p><p><small>Cards were picked randomly by my code</small></p>')
 
 
 def turbomode(request):
@@ -320,11 +434,12 @@ def chatimage(request, chat_id):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
         modal = Chat.objects.get(id=chat_id).personality.character
-        prompt = f'Generate a creative and engaging Dall-E prompt for an image using {modal} as your inspiration.'
+        prompt = f'Generate a creative and engaging Dall-E prompt for an image using "{modal}" as your inspiration. ' \
+                 f'Photorealistic. Canon EOS. Bokeh. Drone photography.'
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=[
-                {"role": "system", "content": 'You are system that is always helpful and creative'},
+                {"role": "system", "content": 'You are system that knows about photography and is always creative'},
                 {"role": "user", "content": f"{prompt}"},
             ]
         )
@@ -342,50 +457,28 @@ def chatimage(request, chat_id):
     return render(request, "index.html")
 
 
-def codepython(request):
-    openai.api_key = OPENAI_API_KEY
-    if request.method == 'GET':
-        codethought = request.GET.get('codepython', '')
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
-                {"role": "system", "content": 'You are system that is always using standards'},
-                {"role": "user", "content": f"{codethought}"},
-            ]
-        )
-
-        reply = completion.choices[0].message['content']
-        # print(reply)
-        context = {
-            'code_result': reply,
-        }
-        return render(request, 'partials/code_python.html', {'context': context})
-    return render(request, "index.html")
-
-
 def rolldicies(request):
     playsound("animals/static/dice.mp3")
     cubes = [
         [
             'pyramid',
             'credit card',
-            'rainbow',
+            'sustainability',
             'tower',
             'tree',
             'eye'
         ],
         [
-            'unhappy',
+            'unhappy but ready',
             'question',
             'fountain',
-            'old key',
-            'tiipii',
+            'rusty key',
+            'teepee',
             'shooting star'
         ],
         [
             'cube',
-            'magnifyer glass',
+            'magnifier glass',
             'beetle',
             'hand',
             'turtle',
@@ -401,22 +494,22 @@ def rolldicies(request):
         ],
         [
             'moon',
-            'bee',
-            'magic wand',
-            'bead board',
+            'insect',
+            'magical',
+            'counter',
             'book',
             'bridge'
         ],
         [
             'phrase',
-            'sleeping',
+            'sleepy',
             'lamp',
             'house',
             'time',
             'arrow up'
         ],
         [
-            'magnet',
+            'magnetic',
             'footstep',
             'lock',
             'dragon',
@@ -434,7 +527,7 @@ def rolldicies(request):
         [
             'flashlight',
             'skyscraper',
-            'happy',
+            'happy and ready',
             'airplane',
             'apple',
             'earth'
@@ -528,8 +621,8 @@ def storycubesimage(request):
         to_img = request.POST['readme']
         style = request.POST['storystyle']
         styles = Story.objects.get(name=f'{style}')
-        prompt = f'detailed representative fotorealistic illustration by Moebius following story "{to_img[0:240]}". ' \
-                 f'Use styles ({styles}) for theme'
+        prompt = f'detailed representative photorealistic illustration by Moebius following story "{to_img[0:240]}". ' \
+                 f'Use styles ({styles}) for theme.'
         r = openai.Image.create(
             prompt=f'{prompt}',
             n=1,
@@ -562,57 +655,20 @@ def savestory(request):
     return HttpResponse('hmm, not correct yet')
 
 
-def schufflecards(request):
-    openai.organization = OPENAI_ORG
-    openai.api_key = OPENAI_API_KEY
-    cards = [
-        'Diamonds',
-        'Spades',
-        'Hearts',
-        'Clubs',
-    ]
-    ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'Jack', 'Queen', 'King', 'Ace']
-    pick = []
-    i = 0
-
-    while i < 3:
-        card = random.choices(cards)
-        rank = random.choices(ranks)
-        pick.append('{} of {}'.format(rank[0], card[0]))
-        i = i+1
-
-    # print(pick)
-
-    prompt = f'image of a card dealer in leather tie holding cards {pick}. Detailed, photorealistic, 4k'
-    r = openai.Image.create(
-        prompt=f'{prompt}',
-        n=1,
-        size='256x256')
-    image = r['data'][0]['url']
-    return HttpResponse(f'<img src="{image}" style="width: 200px"><p><small>AI is still evolving. Request was for '
-                        f'"image of a card dealer in leather tie holding cards {pick}. Detailed, '
-                        f'photorealistic"</small></p><p><small>Cards were picked randomly by my code</small></p>')
-
-
-def askbuffet(request):
+def getscience(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        company = request.GET.get("questiontowarrenbuffet", '')
+        scienceq = request.GET.get("scienceq", '')
+        prompt = f'provide me with max 8 references and links on {scienceq} field'
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
-            "content": "You are a talented and polite Financial Analyst knowing only the OMX Helsinki Stocks. You will"
-                       "use book closing day data that you have access to, 2020 or 2021. You can perform at least the"
-                       "following indicators: P/E, P/B, EV/EBIT and DIV/P, which you always"
-                       "include in your answer (in html tagged table format) even if not asked for. First present the "
-                       f"{company} with few words. Then give short analysis on the latest indicators. In a separate "
-                       f"paragraph at the end of your report please add"
-                       "short summary of book closing day financials over three earlier years."
+            "content": "Answer always correctly"
         }
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"analyse {company}"
+                "content": f"{prompt}. Reply in html table format."
             }
         )
 
@@ -620,10 +676,9 @@ def askbuffet(request):
             model=model_chat,
             messages=turbomode_messages,
         )
-
         reply = completion.choices[0].message['content']
 
-        return HttpResponse(f'<p>Warren thinks you are a smartass!</p>{reply}')
+        return HttpResponse(f'{reply}')
     return render(request, "index.html")
 
 
@@ -653,20 +708,21 @@ def justdraw(request):
     return render(request, "index.html")
 
 
-def getscience(request):
+def comparedocs(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        scienceq = request.GET.get("scienceq", '')
-        prompt = f'provide me with max 8 references and links on {scienceq} field'
+        doc_one = request.GET.get("docone", '')
+        doc_two = request.GET.get("doctwo", '')
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
-            "content": "Answer always correctly"
+            "content": "You can compare two documents scientifically"
         }
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"{prompt}. Reply in html table format."
+                "content": f"read document {doc_one} and document {doc_two}. Reply with an idea of a prompt to "
+                           f"compare them with some scientific approach."
             }
         )
 
@@ -675,8 +731,27 @@ def getscience(request):
             messages=turbomode_messages,
         )
         reply = completion.choices[0].message['content']
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(reply)
 
-        return HttpResponse(f'{reply}')
+        prompt = reply
+        turbomode_messages = [{"role": "system", "content": ""}]
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "You can make scientific comparison"
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f'{prompt} Reply with max 350 words.'
+            }
+        )
+        completion = openai.ChatCompletion.create(
+            model=model_chat,
+            messages=turbomode_messages,
+        )
+        reply = completion.choices[0].message['content']
+        return HttpResponse(f'<p>{reply}</p>')
     return render(request, "index.html")
 
 # Some items to utilize chatGPT "Latest" prompts. Site address and three addresses to a specific prompt text

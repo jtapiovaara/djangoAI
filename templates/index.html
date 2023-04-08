@@ -193,7 +193,10 @@
                  class="icon">&nbsp;Ask about stars</h3>
             <div>
                 <form>
-                    <input type="text" name="stars" placeholder="Astronomy..">
+                    <textarea name="question"
+                              rows="4"
+                              cols="36"
+                              placeholder="Astronomy.."></textarea>
                     <button type="submit"
                             class="w3-margin-top"
                             hx-get="{% url 'stars' %}"
@@ -206,6 +209,28 @@
             <div id="fromstars"></div>
         </div>
     </div>
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="question">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'anything.jpg' %}"
+                 class="icon">&nbsp;Ask me anything</h3>
+            <div>
+                <form>
+                    <textarea name="question"
+                              rows="4"
+                              cols="36"
+                              placeholder="Answer limited to 350 words.."></textarea>
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'askanything' %}"
+                            hx-include="[name='question']"
+                            hx-target="#answerhere">Send your question&nbsp;<img class="htmx-indicator w3-circle"
+                                                                              src="{% static 'process.gif' %}"
+                                                                              style="width: 24px"></button>
+                </form>
+            </div>
+            <div id="answerhere"></div>
+        </div>
+    </div>
 </div>
 <div class="w3-container w3-yellow">
     <div class="w3-container w3-cell w3-quarter" id="arts">
@@ -214,10 +239,12 @@
                  class="icon">&nbsp;Ask about Art</h3>
             <div>
                 <form>
-                    <input type="text"
-                           name="kysymys"
-                           onfocus="this.value=''"
-                           placeholder="ask anything about Art..">
+                    <textarea class="w3-margin-bottom"
+                              name="question"
+                              rows="4"
+                              cols="36"
+                              onfocus="this.value=''"
+                              placeholder="Art question.."></textarea>
                     <div class="w3-row">
                       <div class="w3-col s6">
                         <input type="radio" id="rb_1" name="tyyli" value="Impressionism">
@@ -469,7 +496,7 @@
                                                                                     src="{% static 'luke.gif' %}"
                                                                                     style="width: 36px"></button>
                 </form>
-                <div id="fromstorycubes"></div>
+                <div class="w3-margin-top" id="fromstorycubes"></div>
                 <div class=w3-margin id="storycubekuva"></div>
             </div>
         </div>
@@ -528,6 +555,32 @@
             </form>
 
             <div id="asciiart"></div>
+        </div>
+    </div>
+    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="comparedocs">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'compare.png' %}"
+                 class="icon">&nbsp;Compare two documents</h3>
+            <form>
+                <textarea id="doc1"
+                          name="docone"
+                          placeholder="Drop document 1 here"
+                          rows="10"
+                          cols="38"></textarea>
+                <textarea id="doc2"
+                          name="doctwo"
+                          placeholder="Drop document 2 here"
+                          rows="10"
+                          cols="38"></textarea>
+                <button class="w3-margin-top" type="submit"
+                        hx-get="{% url 'comparedocs' %}"
+                        hx-include="[name='docone'], [name='doctwo']"
+                        hx-target="#docanalysis">&nbsp;=>&nbsp;Compare&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="docanalysis"></div>
         </div>
     </div>
 </div>
