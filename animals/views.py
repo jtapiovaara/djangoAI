@@ -1,6 +1,9 @@
-import os.path
-import urllib
+# import os.path
+# import urllib
+# import json
+import PyPDF2
 import requests
+import logging
 import uuid
 from pathlib import Path
 
@@ -10,14 +13,16 @@ import gtts
 from playsound import playsound
 import pprint
 import re
-import json
 
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.template import Template, RequestContext
 
 from animals.models import Chat, Personality, Story, Completestory
-from djangoAI.settings import MEDIA_ROOT, OPENAI_ORG, OPENAI_API_KEY
+from djangoAI.settings import OPENAI_ORG, OPENAI_API_KEY
 
+logger = logging.getLogger(__name__)
 # model_coding = 'code-davinci-002'
 model_coding = 'gpt-3.5-turbo'
 # engine_completions = 'text-davinci-003'
@@ -28,6 +33,10 @@ model_chat = 'gpt-4'
 # user_talks = []
 # ai_talks = []
 turbomode_messages = [{"role": "system", "content": ""}]
+
+
+def startindex(request):
+    return render(request, "index.html")
 
 
 def getimage(request):
@@ -46,8 +55,8 @@ def getimage(request):
     openai.organization = OPENAI_ORG
     openai.api_key = OPENAI_API_KEY
     if request.method == "GET":
-        animal_kuvaksi = request.GET.get("animal", "")
-        prompt = f'{animal_kuvaksi} fotorealistic cool cartoon style'
+        animal_to_pic = request.GET.get("animal", "")
+        prompt = f'{animal_to_pic} fotorealistic cool cartoon style'
         r = openai.Image.create(
             prompt=f'{prompt}',
             n=1,
@@ -74,8 +83,10 @@ def animals(request):
     and the name of the template file as arguments. This content was created by chatGPT."""
 
     openai.api_key = OPENAI_API_KEY
-    if request.method == "POST":
-        animal = request.POST["animal"]
+    if request.method == "GET":
+        animal = request.GET.get('animal', '')
+        # animal = request.POST["animal"]
+        # logger.info(animal)
         response = openai.Completion.create(
             model=model_completions,
             prompt=generate_prompt(animal),
@@ -127,7 +138,7 @@ def kirjallisuus(request):
         )
 
         reply = completion.choices[0].message['content']
-        print(reply)
+        logger.info(reply)
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
@@ -139,7 +150,7 @@ def kirjallisuus(request):
         )
 
         poem = completion.choices[0].message['content']
-        print(poem)
+        logger.info(poem)
 
         return HttpResponse(f'<p>{reply}</p><p><pre>{poem}</pre></p>')
 
@@ -168,10 +179,20 @@ def stars(request):
 
 
 def askanything(request):
+    """ openai.api_key = OPENAI_API_KEY: Sets the API key for the OpenAI library. if request.method == 'GET':: Checks
+    if the incoming request is a GET request. question = request.GET.get("question", ''): Extracts the question from
+    the request's GET parameters. If the "question" parameter is not provided, it defaults to an empty string. prompt
+    = f'provide me with max 350 words answer on question: {question}': Constructs a prompt for the GPT model by
+    adding the user's question. turbomode_messages: Initializes a list of messages for the GPT model, starting with a
+    system message to instruct the model to answer always correctly. turbomode_messages.append(...): Adds the user
+    message containing the prompt to the list of messages. completion = openai.ChatCompletion.create(...): Sends the
+    list of messages to the OpenAI API, requesting a chat completion using the specified model_chat model. reply =
+    completion.choices[0].message['content']: Extracts the model's response from the API result. return HttpResponse(
+    f'<p>{reply}</p>'): Returns the model's response as an HTML paragraph."""
+
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        question = request.GET.get("question", '')
-        prompt = f'provide me with max 350 words answer on question: {question}'
+        kysymys = request.GET.get('kysymys', '')
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
@@ -180,10 +201,9 @@ def askanything(request):
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"{prompt}"
+                "content": f"{kysymys} Use max 350 words"
             }
         )
-
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=turbomode_messages,
@@ -251,7 +271,7 @@ def codepython(request):
         )
 
         reply = completion.choices[0].message['content']
-        # print(reply)
+        logger.info(reply)
         context = {
             'code_result': reply,
         }
@@ -309,9 +329,7 @@ def schufflecards(request):
         card = random.choices(cards)
         rank = random.choices(ranks)
         pick.append('{} of {}'.format(rank[0], card[0]))
-        i = i+1
-
-    # print(pick)
+        i = i + 1
 
     prompt = f'image of a card dealer in leather tie holding cards {pick}. Detailed, photorealistic, 4k'
     r = openai.Image.create(
@@ -326,9 +344,10 @@ def schufflecards(request):
 
 def turbomode(request):
     openai.api_key = OPENAI_API_KEY
-    if request.method == "POST":
+    if request.method == "GET":
+        stylemode = request.GET.get("stylemode", '')
+        chatquery = request.GET.get("fast", '')
         systemcontent = Personality.objects.get(name='ai').character
-        stylemode = request.POST["stylemode"]
         request.session['personality'] = stylemode
         user = 'User'
         assistant = stylemode.capitalize()
@@ -348,7 +367,6 @@ def turbomode(request):
         elif stylemode == 'zlatan':
             systemcontent = Personality.objects.get(name='zlatan').character
 
-        chatquery = request.POST["fast"]
         if 'this_chat' in request.session:
             request.session['this_chat'] += f'/n{user}: {chatquery}'
         else:
@@ -562,9 +580,9 @@ def storycubesstory(request):
     """ Muutettu käyttämään GPT-4 mallia.  Esimerkki vastausten tasossa on dokumentissa 'Diff_btw_gpt35_gpt4_Story' """
     openai.api_key = OPENAI_API_KEY
 
-    if request.method == "POST":
-        roll = request.POST['roll']
-        storystyle = request.POST['storystyle']
+    if request.method == "GET":
+        roll = request.GET.get('roll', '')
+        storystyle = request.GET.get('storystyle', '')
         story = Story.objects.get(name=f'{storystyle}')
         name = story.name
         style = story.styles
@@ -598,7 +616,7 @@ def readoutloud(request):
         tts.save("answ.mp3")
         playsound("answ.mp3")
         return HttpResponse('Read it out')
-    return render(request,  "index.html")
+    return render(request, "index.html")
 
 
 def storycubesimage(request):
@@ -617,9 +635,9 @@ def storycubesimage(request):
     openai.organization = OPENAI_ORG
     openai.api_key = OPENAI_API_KEY
 
-    if request.method == "POST":
-        to_img = request.POST['readme']
-        style = request.POST['storystyle']
+    if request.method == "GET":
+        to_img = request.GET.get('readme', '')
+        style = request.GET.get('storystyle', '')
         styles = Story.objects.get(name=f'{style}')
         prompt = f'detailed representative photorealistic illustration by Moebius following story "{to_img[0:240]}". ' \
                  f'Use styles ({styles}) for theme.'
@@ -637,11 +655,11 @@ def storycubesimage(request):
 
 
 def savestory(request):
-    if request.method == "POST":
-        name = request.POST["readme"][0:50]
-        content = request.POST["readme"]
-        rolls = request.POST["roll"]
-        image_url = request.POST['storycube_url']
+    if request.method == "GET":
+        name = request.GET.get("readme", '')[0:50]
+        content = request.GET.get("readme", '')
+        rolls = request.GET.get("roll", '')
+        image_url = request.GET.get('storycube_url', '')
         response = requests.get(image_url)
 
         path = Path('media/images/image.jpg')
@@ -686,6 +704,7 @@ def justdraw(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
         drawrequest = request.GET.get("drawme", '')
+        logger.info(drawrequest)
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
@@ -721,7 +740,7 @@ def comparedocs(request):
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"read document {doc_one} and document {doc_two}. Reply with an idea of a prompt to "
+                "content": f"read document {doc_one[:8000]} and document {doc_two[:8000]}. Reply with an idea of a prompt to "
                            f"compare them with some scientific approach."
             }
         )
@@ -731,19 +750,18 @@ def comparedocs(request):
             messages=turbomode_messages,
         )
         reply = completion.choices[0].message['content']
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(reply)
 
+        turbomode_messages.append(
+            {
+                "role": "assistant",
+                "content": f'{reply}'
+            }
+        )
         prompt = reply
-        turbomode_messages = [{"role": "system", "content": ""}]
-        turbomode_messages[0] = {
-            "role": "system",
-            "content": "You can make scientific comparison"
-        }
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f'{prompt} Reply with max 350 words.'
+                "content": f'{prompt} Reply with max 450 words.'
             }
         )
         completion = openai.ChatCompletion.create(
@@ -751,16 +769,158 @@ def comparedocs(request):
             messages=turbomode_messages,
         )
         reply = completion.choices[0].message['content']
-        return HttpResponse(f'<p>{reply}</p>')
+        reply_to_print = turbomode_messages
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(reply_to_print)
+        return HttpResponse(f'<p><b>Comparison:</b>&nbsp;{reply}</p>')
     return render(request, "index.html")
 
-# Some items to utilize chatGPT "Latest" prompts. Site address and three addresses to a specific prompt text
-# https://chat.openai.com/chat#/all/0
-# /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[1]/div[1]/text()
-# /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[2]/div[1]/text()
-# /html/body/div[1]/div[2]/div/main/div[1]/div/div/div[1]/div[2]/div/div/div/section/div[2]/div[3]/div[1]/text()
 
-# api_url = 'tähän openai-api'
-# header = tunnistatumisheader-data
-# req = urllib.request.Request(header + api_url)
-# response = urllib.request.urlopen(req).read()
+def whatsup(request):
+    """ fiscalnote.get_calendar_for_date_white_house_calendar__date__get: This endpoint retrieves information from
+    the White House official calendar for a specified date.
+
+fiscalnote.list_biden_remarks_remarks_biden__get: This endpoint retrieves a list of remarks (spoken or written) made
+by President Joe Biden. You can optionally provide a query parameter to search for specific remarks.
+
+fiscalnote.search_articles_roll_call_articles__get: This endpoint allows you to search for news articles related to
+Congressional people and proceedings. You can provide a query parameter to specify the search criteria."""
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        newsquest = request.GET.get("newsquest", '')
+        logger.info(newsquest)
+        source_1 = 'fiscalnote.list_biden_remarks_remarks_biden__get latest five remarks'
+        source_2 = 'fiscalnote.get_calendar_for_date_white_house_calendar__date__get date=February 10, 2023'
+        source_3 = 'fiscalnote.search_articles_roll_call_articles__get'
+        # prompt = f'{newsquest}'
+        prompt = f"{newsquest} Consider utilizing {source_1}. please reply in html " \
+                 "format and add tables when applicable. Add links to documents if they are available."
+        response = openai.Completion.create(
+            engine=model_completions,
+            prompt=prompt,
+            n=1,
+            max_tokens=1024
+        )
+        logger.info(response)
+        result = response.choices[0].text
+
+        return HttpResponse(f'{result}')
+    return render(request, "index.html")
+
+
+def toemoji(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        movie = request.GET.get("movie", '')
+        logger.info(movie)
+        prompt = f'Convert movie titles into emoji.\n\nBack to the Future: 👨👴🚗🕒 \nBatman: 🤵🦇 \nTransformers: 🚗🤖 ' \
+                 f'\nLord of the Ring:Return of the King: 🧙💍:🤴🔙\n{movie}'
+        response = openai.Completion.create(
+            model=model_completions,
+            prompt=prompt,
+        )
+        result = response.choices[0].text
+        return HttpResponse(f'<h3>{movie}{result}</h3>')
+    return render(request, "index.html")
+
+
+def studypoints(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        studypoint = request.GET.get("studypoint", '')
+        logger.info(studypoint)
+        prompt = f'What are 5 key points I should know when studying {studypoint}? Answer with an html bulleted list'
+        response = openai.Completion.create(
+            model=model_completions,
+            prompt=prompt,
+            temperature=0.3,
+            max_tokens=450,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
+        )
+        result = response.choices[0].text
+        return HttpResponse(f'{result}')
+    return render(request, "index.html")
+
+
+def analysedoc(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        esimerkki_url = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
+        url = request.GET.get("onedoc", '')
+        print(url)
+        r = requests.get(url, stream=True)
+
+        if r.status_code is not 200:
+            return HttpResponse(f'Please give a valid url')
+        else:
+            with open('media/raw_example.pdf', 'wb') as f:
+                f.write(r.content)
+
+            EOF_MARKER = b'%%EOF'
+            file_name = 'media/raw_example.pdf'
+
+            with open(file_name, 'rb') as f:
+                contents = f.read()
+
+            if EOF_MARKER in contents:
+                contents = contents.replace(EOF_MARKER, b'')
+                contents = contents + EOF_MARKER
+            else:
+                contents = contents[:-6] + EOF_MARKER
+
+            with open(file_name.replace('.pdf', '') + '_ready.pdf', 'wb') as f:
+                f.write(contents)
+
+            doc = 'media/raw_example_ready.pdf'
+            pdf_file = open(doc, 'rb')
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            text = ''
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            text_string = str(text)
+
+            turbomode_messages = [{"role": "system", "content": ""}]
+            turbomode_messages[0] = {
+                "role": "system",
+                "content": "You are a University level Scientist who knows well how to analyse and review scientific docs."
+            }
+            turbomode_messages.append(
+                {
+                    "role": "user",
+                    "content": f"Identify the key findings and implications of this research paper: {text_string[:18000]}. "
+                               f"Summarize the main arguments at end. Use html bulleted lists when appropriate."
+                }
+            )
+
+            completion = openai.ChatCompletion.create(
+                model=model_chat,
+                messages=turbomode_messages,
+            )
+            reply = completion.choices[0].message['content']
+
+            return HttpResponse(f'<p style="width: auto">{reply}</p>')
+
+    return render(request, "index.html")
+
+
+def indexexamples(request):
+    return render(request, 'indexexamples.html')
+
+
+def indexexampleopen(request, id):
+    tool = 'index.html'
+    start = f'<div id="{id}"'
+    html = render_to_string(tool)
+    start_index = html.find(start)
+    end_index = html.find('<br>', start_index)
+    extracted = html[start_index:end_index + + len('</div></div>')]
+    extracted_html = f'{extracted}</div></div>'
+
+    template_string = extracted_html
+    template = Template(template_string)
+    context = RequestContext(request)
+    rendered_template = template.render(context)
+
+    return render(request, 'partials/indexlanding.html', {'rendered_template': rendered_template})

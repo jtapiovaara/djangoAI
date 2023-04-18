@@ -2,7 +2,8 @@ from django.urls import path
 from animals import views
 
 urlpatterns = [
-    path('', views.animals, name='animals'),
+    path('', views.startindex, name='startindex'),
+    path('animals/', views.animals, name='animals'),
     path('getimage/', views.getimage, name='getimage'),
     path('kirjallisuus/', views.kirjallisuus, name='kirjallisuus'),
     path('stars/', views.stars, name='stars'),
@@ -25,4 +26,10 @@ urlpatterns = [
     path('getscience/', views.getscience, name='getscience'),
     path('justdraw/', views.justdraw, name='justdraw'),
     path('comparedocs/', views.comparedocs, name='comparedocs'),
+    path('whatsup/', views.whatsup, name='whatsup'),
+    path('toemoji/', views.toemoji, name='toemoji'),
+    path('studypoints/', views.studypoints, name='studypoints'),
+    path('analysedoc/', views.analysedoc, name='analysedoc'),
+    path('indexexamples/', views.indexexamples, name='indexexamples'),
+    path('indexexamples/<str:id>', views.indexexampleopen, name='indexexampleopen'),
 ]

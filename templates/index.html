@@ -1,149 +1,56 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<head>
-    <title>Django AI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon"
-          href="{% static 'dog.png' %}"/>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="{% static 'main.css'%}">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-{#    <script src="https://unpkg.com/htmx.org@1.8.6"></script>#}
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.8"></script>
-</head>
-<style>
-    footer {
-        position: fixed;
-        width: 100%;
-        background-color: #8e8ea0;
-    }
-    input[type="text"] {
-        width: 300px;
-    }
-    input[type="radio"] {
-        width: 30px;
-        height: 30px;
-    }
-
-    button[type="submit"] {
-        width: 300px;
-        padding: 12px 0;
-        color: #fff;
-        {#background-color: #006680;#}
-        background-color: #446680;
-        border: none;
-        border-radius: 4px;
-        text-align: center;
-        cursor: pointer;
-        opacity: 0.7;
-    }
-    label {
-        font-size: larger;
-    }
-    p {
-        width: 320px;
-    }
-    p_modal {
-        width: auto;
-    }
-    #modal {
-        /* Underlay covers entire screen. */
-        position: fixed;
-        top:0;
-        bottom: 0;
-        left:0;
-        right:0;
-        background-color:rgba(0,0,0,0.5);
-        z-index:1000;
-
-        /* Flexbox centers the .modal-content vertically and horizontally */
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-
-        /* Animate when opening */
-        animation-name: fadeIn;
-        animation-duration:150ms;
-        animation-timing-function: ease;
-    }
-
-    #modal > .modal-underlay {
-        /* underlay takes up the entire viewport. This is only
-        required if you want to click to dismiss the popup */
-        position: absolute;
-        z-index: -1;
-        top:0;
-        bottom:0;
-        left: 0;
-        right: 0;
-    }
-
-    #modal > .modal-content {
-        /* Position visible dialog near the top of the window */
-        margin-top:10vh;
-
-        /* Sizing for visible dialog */
-        width:80%;
-        max-width:600px;
-
-        /* Display properties for visible dialog*/
-        border:solid 1px #999;
-        border-radius:8px;
-        box-shadow: 0 0 20px 0 rgba(0,0,0,0.3);
-        background-color:white;
-        padding:20px;
-
-        /* Animate when opening */
-        animation-name:zoomIn;
-        animation-duration:150ms;
-        animation-timing-function: ease;
-    }
-
-    #modal.closing {
-        /* Animate when closing */
-        animation-name: fadeOut;
-        animation-duration:150ms;
-        animation-timing-function: ease;
-    }
-
-    #modal.closing > .modal-content {
-        /* Aniate when closing */
-        animation-name: zoomOut;
-        animation-duration:150ms;
-        animation-timing-function: ease;
-    }
-
-    @keyframes fadeIn {
-        0% {opacity: 0;}
-        100% {opacity: 1;}
-    }
-
-    @keyframes fadeOut {
-        0% {opacity: 1;}
-        100% {opacity: 0;}
-    }
-
-    @keyframes zoomIn {
-        0% {transform: scale(0.9);}
-        100% {transform: scale(1);}
-    }
-
-    @keyframes zoomOut {
-        0% {transform: scale(1);}
-        100% {transform: scale(0.9);}
-    }
-</style>
+{% block page_content %}
 <body>
+<div class="w3-right"><a href="{% url 'indexexamples' %}"><small>Index of Examples</small></a></div>
+<div class="w3-container w3-white">
+    <div id="toemoji" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+        <div class="w3-padding">
+            <h3><img src="{% static 'emojismile.png' %}"
+                 class="icon">&nbsp;Turn it to emoji's</h3>
+            <form>
+                <input name="movie"
+                       onfocus="this.value=''"
+                       placeholder="What's Your favourite movie?">
+                <button class="w3-margin-top" type="submit"
+                        hx-get="{% url 'toemoji' %}"
+                        hx-include="[name='movie']"
+                        hx-target="#emojiresponse">&nbsp;=>&nbsp;Get Movie&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="emojiresponse"></div><br>
+        </div>
+    </div>
+    <div id="studypoints" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'studypoints.png' %}"
+                 class="icon">&nbsp;What to study?</h3>
+            <form>
+                <input name="studypoint"
+                       onfocus="this.value=''"
+                       placeholder="5 key points to know about..">
+                <button class="w3-margin-top" type="submit"
+                        data-hx-get="{% url 'studypoints' %}"
+                        data-hx-include="[name='studypoint']"
+                        data-hx-target="#studythese">&nbsp;=>&nbsp;Get points&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="studythese" style="width: auto"></div><br>
+        </div>
+    </div>
+</div>
 <div class="w3-container w3-green">
-    <div class="w3-container w3-cell w3-quarter" id="cats">
+    <div id="cats" class="w3-container w3-cell w3-quarter">
         <div class="w3-padding" >
             <h3><img src="{% static 'cat.png' %}"
                      class="icon">&nbsp;Name your Pet</h3>
-            <form hx-post="{% url 'animals' %}"
-                  hx-include="[name='animal']"
-                  hx-target="#result">
-                {% csrf_token %}
+            <form data-hx-get="{% url 'animals' %}"
+                  data-hx-include="[name='animal']"
+                  data-hx-target="#result">
                 <input type="text"
                        id="name"
                        name="animal"
@@ -156,18 +63,18 @@
             </form>
             <form>
                 <button type="submit" id="haekissakuva" class="w3-margin-top"
-                        hx-get="{% url 'getimage' %}"
-                        hx-include="[name='animal']"
-                        hx-target="#kuva">2. Get picture&nbsp;<img class="htmx-indicator w3-circle"
+                        data-hx-get="{% url 'getimage' %}"
+                        data-hx-include="[name='animal']"
+                        data-hx-target="#kuva">2. Get picture&nbsp;<img class="htmx-indicator w3-circle"
                                                                    src="{% static 'process.gif' %}"
                                                                    style="width: 24px"></button>
 
             </form>
             <div id="result" class="w3-margin-top"></div>
-            <div id="kuva"></div>
+            <div id="kuva"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="books">
+    <div id="books" class="w3-container w3-cell w3-quarter">
         <div class="w3-padding" >
             <h3><img src="{% static 'books.png' %}"
                  class="icon">&nbsp;About books</h3>
@@ -184,16 +91,16 @@
                                                                              style="width: 24px"></button>
                 </form>
             </div>
-            <div id="kirjasta"></div>
+            <div id="kirjasta"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="stars">
+    <div id="stars" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'stars.png' %}"
                  class="icon">&nbsp;Ask about stars</h3>
             <div>
                 <form>
-                    <textarea name="question"
+                    <textarea name="stars"
                               rows="4"
                               cols="36"
                               placeholder="Astronomy.."></textarea>
@@ -206,34 +113,42 @@
                                                                               style="width: 24px"></button>
                 </form>
             </div>
-            <div id="fromstars"></div>
+            <div id="fromstars"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="question">
+    <div id="kysymys" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'anything.jpg' %}"
                  class="icon">&nbsp;Ask me anything</h3>
             <div>
                 <form>
-                    <textarea name="question"
+                    <textarea name="kysymys"
                               rows="4"
                               cols="36"
                               placeholder="Answer limited to 350 words.."></textarea>
                     <button type="submit"
                             class="w3-margin-top"
                             hx-get="{% url 'askanything' %}"
-                            hx-include="[name='question']"
+                            hx-include="[name='kysymys']"
                             hx-target="#answerhere">Send your question&nbsp;<img class="htmx-indicator w3-circle"
                                                                               src="{% static 'process.gif' %}"
                                                                               style="width: 24px"></button>
                 </form>
             </div>
-            <div id="answerhere"></div>
+{#            <p>“What’s the craziest thing you’ve ever done?”</p>#}
+{#            <p> “What’s your favorite conspiracy theory?”</p>#}
+{#            <p>“What’s the meaning of life?”</p>#}
+{#            <p>“What’s the best prank you’ve ever pulled?”</p>#}
+{#            <p>“What’s the most embarrassing thing that’s ever happened to you?”</p>#}
+{#            <p>“What’s the weirdest dream you’ve ever had?”</p>#}
+{#            <p>“What’s the best joke you’ve ever heard?”</p>#}
+{#            <p>“What’s the most ridiculous thing you’ve ever bought?”</p>#}
+            <div id="answerhere"></div><br>
         </div>
     </div>
 </div>
 <div class="w3-container w3-yellow">
-    <div class="w3-container w3-cell w3-quarter" id="arts">
+    <div id="arts" class="w3-container w3-cell w3-quarter">
         <div class="w3-padding" >
             <h3><img src="{% static 'colosseum.png' %}"
                  class="icon">&nbsp;Ask about Art</h3>
@@ -295,10 +210,10 @@
                                                                                            style="width: 24px"></button>
                 </form>
             </div>
-            <div id="newpainting" class="w3-margin"></div>
+            <div id="newpainting" class="w3-margin"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="coding">
+    <div id="coding" class="w3-container w3-cell w3-quarter">
         <div class="w3-padding" >
             <h3><img src="{% static 'computer.png' %}"
                  class="icon">&nbsp;Code something, well, anything..</h3>
@@ -318,10 +233,10 @@
                                                                                   style="width: 24px"></button>
                 </form>
             </div>
-            <div id="fromcodingmachine"></div>
+            <div id="fromcodingmachine"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="warren">
+    <div id="warren" class="w3-container w3-cell w3-quarter">
         <div class="w3-padding" >
             <h3><img src="{% static 'finance.png' %}"
                  class="icon">&nbsp;Ask Warren Buffet</h3>
@@ -342,11 +257,11 @@
                                                                                   style="width: 36px"></button>
                 </form>
             </div>
-            <div id="warrensreply" class="w3-padding"></div>
+            <div id="warrensreply" class="w3-padding"></div><br>
         </div>
     </div>
 </div>
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="deckofcards">
+    <div id="deckofcards" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'deck.png' %}"
                      class="icon">&nbsp;Deck of Cards</h3>
@@ -361,19 +276,18 @@
                                                                         src="{% static 'spinner.gif' %}"
                                                                         style="width: 36px"></button>
                 </form>
-            </div>
+            </div><br>
         </div>
     </div>
 </div>
 <div class="w3-container w3-red">
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="turbo">
+    <div id="turbo" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'chat.png' %}"
                  class="icon">&nbsp;Chat in Turbo mode</h3>
             <div id="fromturbo"></div>
             <div>
                 <form>
-                    {% csrf_token %}
                     <input type="text"
                            name="fast"
                            onfocus="this.value=''"
@@ -420,7 +334,7 @@
                     </div>
                     <button type="submit"
                             class="w3-margin-top"
-                            hx-post="{% url 'turbomode' %}"
+                            hx-get="{% url 'turbomode' %}"
                             hx-include="[name='fast'], [name='stylemode']"
                             hx-target="#fromturbo">Go Turbomode!&nbsp;<img class="htmx-indicator w3-circle"
                                                                            src="{% static 'spinner.gif' %}"
@@ -437,15 +351,14 @@
                         hx-target="#storieslist">&nbsp;Read stories&nbsp;</button>
             </div>
             <div id="storieslist"></div>
-            <div id="coolimage"></div>
+            <div id="coolimage"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter" id="storycubes">
+    <div id="storycubes" class="w3-container w3-cell w3-quarter">
         <div class="w3-padding" >
             <img src="{% static 'storycubes.png' %}" style="width: 300px"><h3>&nbsp;Play StoryCubes</h3>
             <div>
                 <form>
-                    {% csrf_token %}
                     <textarea id="roll" name="roll" cols="36"></textarea>
                     <button type="submit"
                             class="w3-margin-top w3-margin-bottom"
@@ -482,37 +395,37 @@
                       </div>
                     </div>
                     <button type="submit"
-                                class="w3-margin-top"
-                            hx-post="{% url 'storycubesstory' %}"
+                            class="w3-margin-top"
+                            hx-get="{% url 'storycubesstory' %}"
                             hx-include="[name='roll'], [name='storystyle']"
                             hx-target="#fromstorycubes">&nbsp;1. Get Story&nbsp;<img class="htmx-indicator w3-circle"
                                                                                      src="{% static 'luke.gif' %}"
                                                                                      style="width: 36px"></button>
                     <button type="submit"
                             class="w3-margin-top"
-                            hx-post="{% url 'storycubesimage' %}"
+                            hx-get="{% url 'storycubesimage' %}"
                             hx-include="[name='readme'], [name='storystyle']"
                             hx-target="#storycubekuva">&nbsp;2. Get image&nbsp;<img class="htmx-indicator w3-circle"
                                                                                     src="{% static 'luke.gif' %}"
                                                                                     style="width: 36px"></button>
                 </form>
                 <div class="w3-margin-top" id="fromstorycubes"></div>
-                <div class=w3-margin id="storycubekuva"></div>
+                <div class=w3-margin id="storycubekuva"></div><br>
             </div>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="prompter">
+    <div id="prompter" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'process.gif' %}"
                  class="icon">&nbsp;Prompter is coming..</h3>
             <p>You will be able to use any Prompt from chatGPT's dynamic always changing "Latest"-list</p>
             <p>With your own responsibility that is..</p>
-            <div id="fromstars"></div>
+            <div id="fromprompter"></div><br>
         </div>
     </div>
 </div>
 <div class="w3-container w3-purple">
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="sciences">
+    <div id="sciences" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'science.png' %}"
                  class="icon">&nbsp;Get Science papers</h3>
@@ -531,11 +444,10 @@
                                                       style="width: 24px">
                 </button>
             </form>
-
-            <div id="sciencerefs"></div>
+            <div id="sciencerefs"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="drawer">
+    <div id="drawer" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'asciidog.png' %}"
                  class="icon">&nbsp;AI can draw ascii</h3>
@@ -553,11 +465,10 @@
                                                       style="width: 24px">
                 </button>
             </form>
-
-            <div id="asciiart"></div>
+            <div id="asciiart"></div><br>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-quarter w3-margin-bottom" id="comparedocs">
+    <div id="comparedocs" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'compare.png' %}"
                  class="icon">&nbsp;Compare two documents</h3>
@@ -580,14 +491,54 @@
                                                       style="width: 24px">
                 </button>
             </form>
-            <div id="docanalysis"></div>
+            <div id="docanalysis"></div><br>
+        </div>
+    </div>
+    <div id="whatsup" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'whatsup.png' %}"
+                 class="icon">&nbsp;Latest news. You're welcome</h3>
+            <form>
+                <textarea id="doc1"
+                          name="newsquest"
+                          placeholder="Ask for Joe Biden latest remarks on climate and ask for comparison to earlier presidents remarks"
+                          rows="6"
+                          cols="38"></textarea>
+                <button class="w3-margin-top" type="submit"
+                        hx-get="{% url 'whatsup' %}"
+                        hx-include="[name='newsquest']"
+                        hx-target="#yourwelcome">&nbsp;=>&nbsp;Get Today's&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="yourwelcome"><pre></pre></div><br>
         </div>
     </div>
 </div>
-<div class="w3-center">
-    <footer>
-        <small title="Now using models:&nbsp;{{ context.model_coding }},&nbsp;{{ context.model_completions }},&nbsp;{{ context.model_chat }}">OpenAI tools <b>chatGPT</b> & <b>DALLE2</b></small>
-    </footer>
+<div class="w3-container w3-gray">
+     <div id="analysedoc" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'compare.png' %}"
+                 class="icon">&nbsp;Analyse doc in the web</h3>
+            <form>
+                <textarea id="doc1"
+                          name="onedoc"
+                          onfocus="this.value=''"
+                          placeholder="Drop link to pdf here.."
+                          rows="10"
+                          cols="38"></textarea>
+                <button class="w3-margin-top" type="submit"
+                        hx-get="{% url 'analysedoc' %}"
+                        hx-include="[name='onedoc']"
+                        hx-target="#analysis">&nbsp;=>&nbsp;Make analysis&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="analysis"></div><br>
+        </div>
+    </div>
 </div>
 </body>
 <script>
@@ -595,3 +546,4 @@
         $('#name').focus();
     });
 </script>
+{% endblock %}

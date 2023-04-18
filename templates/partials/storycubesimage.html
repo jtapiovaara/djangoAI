@@ -5,6 +5,6 @@
     <textarea name="storycube_url" hidden>{{context.storycube_url}}</textarea>
     <button type="submit"
             class="w3-margin-top"
-            hx-post="{% url 'savestory' %}"
+            hx-get="{% url 'savestory' %}"
             hx-include="[name='readme'],[name='roll'],[name='storystyle'],[name='storycube_url']">Save story</button>
 </form>
