@@ -1,5 +1,6 @@
 # import os.path
 # import urllib
+# import urllib.request
 # import json
 import PyPDF2
 import requests
@@ -19,6 +20,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.template import Template, RequestContext
 
+from animals.forms import AllForm
 from animals.models import Chat, Personality, Story, Completestory
 from djangoAI.settings import OPENAI_ORG, OPENAI_API_KEY
 
@@ -35,7 +37,48 @@ model_chat = 'gpt-4'
 turbomode_messages = [{"role": "system", "content": ""}]
 
 
+# def startindex(request):
+#     return render(request, "index.html")
+
+
 def startindex(request):
+    form = AllForm
+    return render(request, "index.html", {'form': form})
+
+
+def toemoji(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        movie = request.GET.get("toemoji_movie", '')
+        logger.info(movie)
+        prompt = f'Convert movie titles into emoji.\n\nBack to the Future: 👨👴🚗🕒 \nBatman: 🤵🦇 \nTransformers: 🚗🤖 ' \
+                 f'\nLord of the Ring:Return of the King: 🧙💍:🤴🔙\n{movie}'
+        response = openai.Completion.create(
+            model=model_completions,
+            prompt=prompt,
+        )
+        result = response.choices[0].text
+        return HttpResponse(f'<h3>{movie}{result}</h3>')
+    return render(request, "index.html")
+
+
+def studypoints(request):
+    openai.api_key = OPENAI_API_KEY
+    if request.method == 'GET':
+        studypoint = request.GET.get("studypoints", '')
+        logger.info(studypoint)
+        prompt = f'What are 5 key points I should know when studying {studypoint}? Answer with an html bulleted list'
+        response = openai.Completion.create(
+            model=model_completions,
+            prompt=prompt,
+            temperature=0.3,
+            max_tokens=450,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
+        )
+        result = response.choices[0].text
+        return HttpResponse(f'{result}')
     return render(request, "index.html")
 
 
@@ -119,20 +162,17 @@ Names:""".format(
 
 
 def kirjallisuus(request):
-    """ Here we send two separate requests (one for a story and one for a poem) to AI and get the results back in one
-    HttpResponse. Also comparing result using different OpenAI Models
-    """
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        kirjailija = request.GET.get('kirjailija', '')
-        kirja = request.GET.get('kirja', '')
+        author = request.GET.get('author', '')
+        book = request.GET.get('book', '')
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=[
                 {"role": "system", "content": "You are a literature reviewer understanding especially well classical "
                                               "american literature."},
-                {"role": "user", "content": f"Please write a short summary of book {kirja} by {kirjailija} using "
+                {"role": "user", "content": f"Please write a short summary of book {book} by {author} using "
                                             f"his/her own writing style. Limit your answer to 100 words"},
             ]
         )
@@ -144,7 +184,7 @@ def kirjallisuus(request):
             model=model_chat,
             messages=[
                 {"role": "system", "content": "You are a writer with great sence of classical poetry"},
-                {"role": "user", "content": f"Please write a representative poem about book {kirja} by {kirjailija}."
+                {"role": "user", "content": f"Please write a representative poem about book {book} by {author}."
                                             f" Limit your answer to 50 words"},
             ]
         )
@@ -179,20 +219,9 @@ def stars(request):
 
 
 def askanything(request):
-    """ openai.api_key = OPENAI_API_KEY: Sets the API key for the OpenAI library. if request.method == 'GET':: Checks
-    if the incoming request is a GET request. question = request.GET.get("question", ''): Extracts the question from
-    the request's GET parameters. If the "question" parameter is not provided, it defaults to an empty string. prompt
-    = f'provide me with max 350 words answer on question: {question}': Constructs a prompt for the GPT model by
-    adding the user's question. turbomode_messages: Initializes a list of messages for the GPT model, starting with a
-    system message to instruct the model to answer always correctly. turbomode_messages.append(...): Adds the user
-    message containing the prompt to the list of messages. completion = openai.ChatCompletion.create(...): Sends the
-    list of messages to the OpenAI API, requesting a chat completion using the specified model_chat model. reply =
-    completion.choices[0].message['content']: Extracts the model's response from the API result. return HttpResponse(
-    f'<p>{reply}</p>'): Returns the model's response as an HTML paragraph."""
-
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        kysymys = request.GET.get('kysymys', '')
+        anyquestion = request.GET.get('askanything', '')
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
@@ -201,7 +230,7 @@ def askanything(request):
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"{kysymys} Use max 350 words"
+                "content": f"{anyquestion} Use max 350 words"
             }
         )
         completion = openai.ChatCompletion.create(
@@ -214,28 +243,21 @@ def askanything(request):
     return render(request, "index.html")
 
 
-def kysymys(request):
-    """ Tässä koitetaan ennakoida ja vaikuttaa vastaukseen muutenkin kuin vain kirjoitetulla kysymyksellä. Voidaan
-    antaa käyttäjän valita kysymyksen aihe (esim. arkkitehtuuri: Alvar Aalto, Cubism, etc.) ja välittää se mukaan.
-    Voidaan myös vaikuttaa/manipuloida kysymystä palvelinpäässä tässä funktiossa. Vaikuttaminen voi olla tietysti myös
-    vaikka ohjattua muualta käsin (tässä muuttujalla 'tyyli_ext)' tai tietokannasta tms. Kiehtovaa."""
-
+def artquestion(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == "GET":
-        kysymyksesi = request.GET.get("kysymys", "")
-        tyyli = request.GET.get("tyyli", "")
-        tyyli_ext = 'Contemporary'
+        question = request.GET.get("artquestion", "")
+        artstyle = request.GET.get("artstyle", "")
+        artstyle_ext = 'Contemporary'
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
             messages=[
-                {"role": "system", "content": f"You are an arts expert who highly values {tyyli_ext} art"},
-                {"role": "user", "content": f"{kysymyksesi}. Consider art style: {tyyli}"},
+                {"role": "system", "content": f"You are an arts expert who highly values {artstyle_ext} art"},
+                {"role": "user", "content": f"{question}. Consider art style: {artstyle}"},
             ]
         )
-
         reply = completion.choices[0].message['content']
-        # print(completion)
 
         return HttpResponse(f'<textarea name="artanswer" rows="7"cols="40" style="border: none">{reply}</textarea>')
 
@@ -282,7 +304,7 @@ def codepython(request):
 def askbuffet(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        company = request.GET.get("questiontowarrenbuffet", '')
+        company = request.GET.get("askbuffet", '')
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
@@ -346,7 +368,7 @@ def turbomode(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == "GET":
         stylemode = request.GET.get("stylemode", '')
-        chatquery = request.GET.get("fast", '')
+        chatquery = request.GET.get("turbomode", '')
         systemcontent = Personality.objects.get(name='ai').character
         request.session['personality'] = stylemode
         user = 'User'
@@ -676,7 +698,7 @@ def savestory(request):
 def getscience(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        scienceq = request.GET.get("scienceq", '')
+        scienceq = request.GET.get("getscience", '')
         prompt = f'provide me with max 8 references and links on {scienceq} field'
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
@@ -703,7 +725,7 @@ def getscience(request):
 def justdraw(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        drawrequest = request.GET.get("drawme", '')
+        drawrequest = request.GET.get("justdraw", '')
         logger.info(drawrequest)
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
@@ -730,8 +752,8 @@ def justdraw(request):
 def comparedocs(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        doc_one = request.GET.get("docone", '')
-        doc_two = request.GET.get("doctwo", '')
+        doc_one = request.GET.get("comparedocsone", '')
+        doc_two = request.GET.get("comparedocstwo", '')
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
@@ -779,20 +801,16 @@ def comparedocs(request):
 def whatsup(request):
     """ fiscalnote.get_calendar_for_date_white_house_calendar__date__get: This endpoint retrieves information from
     the White House official calendar for a specified date.
-
-fiscalnote.list_biden_remarks_remarks_biden__get: This endpoint retrieves a list of remarks (spoken or written) made
-by President Joe Biden. You can optionally provide a query parameter to search for specific remarks.
-
-fiscalnote.search_articles_roll_call_articles__get: This endpoint allows you to search for news articles related to
-Congressional people and proceedings. You can provide a query parameter to specify the search criteria."""
+    fiscalnote.list_biden_remarks_remarks_biden__get: This endpoint retrieves a list of remarks (spoken or written) made
+    by President Joe Biden. You can optionally provide a query parameter to search for specific remarks.
+    fiscalnote.search_articles_roll_call_articles__get: This endpoint allows you to search for news articles related to
+    Congressional people and proceedings. You can provide a query parameter to specify the search criteria."""
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        newsquest = request.GET.get("newsquest", '')
-        logger.info(newsquest)
+        newsquest = request.GET.get("whatsup", '')
         source_1 = 'fiscalnote.list_biden_remarks_remarks_biden__get latest five remarks'
         source_2 = 'fiscalnote.get_calendar_for_date_white_house_calendar__date__get date=February 10, 2023'
         source_3 = 'fiscalnote.search_articles_roll_call_articles__get'
-        # prompt = f'{newsquest}'
         prompt = f"{newsquest} Consider utilizing {source_1}. please reply in html " \
                  "format and add tables when applicable. Add links to documents if they are available."
         response = openai.Completion.create(
@@ -800,44 +818,6 @@ Congressional people and proceedings. You can provide a query parameter to speci
             prompt=prompt,
             n=1,
             max_tokens=1024
-        )
-        logger.info(response)
-        result = response.choices[0].text
-
-        return HttpResponse(f'{result}')
-    return render(request, "index.html")
-
-
-def toemoji(request):
-    openai.api_key = OPENAI_API_KEY
-    if request.method == 'GET':
-        movie = request.GET.get("movie", '')
-        logger.info(movie)
-        prompt = f'Convert movie titles into emoji.\n\nBack to the Future: 👨👴🚗🕒 \nBatman: 🤵🦇 \nTransformers: 🚗🤖 ' \
-                 f'\nLord of the Ring:Return of the King: 🧙💍:🤴🔙\n{movie}'
-        response = openai.Completion.create(
-            model=model_completions,
-            prompt=prompt,
-        )
-        result = response.choices[0].text
-        return HttpResponse(f'<h3>{movie}{result}</h3>')
-    return render(request, "index.html")
-
-
-def studypoints(request):
-    openai.api_key = OPENAI_API_KEY
-    if request.method == 'GET':
-        studypoint = request.GET.get("studypoint", '')
-        logger.info(studypoint)
-        prompt = f'What are 5 key points I should know when studying {studypoint}? Answer with an html bulleted list'
-        response = openai.Completion.create(
-            model=model_completions,
-            prompt=prompt,
-            temperature=0.3,
-            max_tokens=450,
-            top_p=1.0,
-            frequency_penalty=0.0,
-            presence_penalty=0.0
         )
         result = response.choices[0].text
         return HttpResponse(f'{result}')
@@ -847,9 +827,9 @@ def studypoints(request):
 def analysedoc(request):
     openai.api_key = OPENAI_API_KEY
     if request.method == 'GET':
-        esimerkki_url = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
-        url = request.GET.get("onedoc", '')
-        print(url)
+        e_u = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
+        e_lunes = 'https://www.lunes.fi/static/nados/docs/Lappi/rovaniemi_eelinm%C3%A4nty_p%C3%A4%C3%A4t%C3%B6s.pdf'
+        url = request.GET.get("analysedoc", '')
         r = requests.get(url, stream=True)
 
         if r.status_code is not 200:
@@ -884,12 +864,13 @@ def analysedoc(request):
             turbomode_messages = [{"role": "system", "content": ""}]
             turbomode_messages[0] = {
                 "role": "system",
-                "content": "You are a University level Scientist who knows well how to analyse and review scientific docs."
+                "content": "You are a University level Scientist who knows well how to analyse and review scientific "
+                           "docs."
             }
             turbomode_messages.append(
                 {
                     "role": "user",
-                    "content": f"Identify the key findings and implications of this research paper: {text_string[:18000]}. "
+                    "content": f"Identify the key findings and implications of this research paper: {text_string[:18000]}."
                                f"Summarize the main arguments at end. Use html bulleted lists when appropriate."
                 }
             )
@@ -910,9 +891,13 @@ def indexexamples(request):
 
 
 def indexexampleopen(request, id):
+    form = AllForm
+    context = {
+        'form': form
+    }
     tool = 'index.html'
     start = f'<div id="{id}"'
-    html = render_to_string(tool)
+    html = render_to_string(tool, context)
     start_index = html.find(start)
     end_index = html.find('<br>', start_index)
     extracted = html[start_index:end_index + + len('</div></div>')]
@@ -924,3 +909,4 @@ def indexexampleopen(request, id):
     rendered_template = template.render(context)
 
     return render(request, 'partials/indexlanding.html', {'rendered_template': rendered_template})
+
