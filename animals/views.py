@@ -1,7 +1,3 @@
-# import os.path
-# import urllib
-# import urllib.request
-# import json
 import PyPDF2
 import requests
 import logging
@@ -19,9 +15,11 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.template import Template, RequestContext
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 from animals.forms import AllForm
-from animals.models import Chat, Personality, Story, Completestory
+from animals.models import Chat, Personality, Story, Completestory, Djangoaiuser
 from djangoAI.settings import OPENAI_ORG, OPENAI_API_KEY
 
 logger = logging.getLogger(__name__)
@@ -31,19 +29,49 @@ model_coding = 'gpt-3.5-turbo'
 model_completions = 'text-davinci-003'
 # model_chat = 'gpt-3.5-turbo'
 model_chat = 'gpt-4'
+model_embedding = 'text-embedding-ada-002'
+# size_parameter defines the chunk that is possible to send to chatGPT in one time
+size_parameter = 18000
 
 # user_talks = []
 # ai_talks = []
 turbomode_messages = [{"role": "system", "content": ""}]
 
 
-# def startindex(request):
-#     return render(request, "index.html")
+def logout(request):
+    logout(request)
 
 
+@login_required
 def startindex(request):
     form = AllForm
     return render(request, "index.html", {'form': form})
+
+
+@login_required
+def indexexamples(request):
+    return render(request, 'indexexamples.html')
+
+
+def indexexampleopen(request, id):
+    form = AllForm
+    context = {
+        'form': form
+    }
+    tool = 'index.html'
+    start = f'<div id="{id}"'
+    html = render_to_string(tool, context)
+    start_index = html.find(start)
+    end_index = html.find('<br>', start_index)
+    extracted = html[start_index:end_index + + len('</div></div>')]
+    extracted_html = f'{extracted}</div></div>'
+
+    template_string = extracted_html
+    template = Template(template_string)
+    context = RequestContext(request)
+    rendered_template = template.render(context)
+
+    return render(request, 'partials/indexlanding.html', {'rendered_template': rendered_template})
 
 
 def toemoji(request):
@@ -826,13 +854,15 @@ def whatsup(request):
 
 def analysedoc(request):
     openai.api_key = OPENAI_API_KEY
+    # size_parameter = 18000
     if request.method == 'GET':
         e_u = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
         e_lunes = 'https://www.lunes.fi/static/nados/docs/Lappi/rovaniemi_eelinm%C3%A4nty_p%C3%A4%C3%A4t%C3%B6s.pdf'
+        e_lunes_2 = 'https://www.lunes.fi/static/nados/docs/Pohjois-Savo/varkaus_kotipuronm%C3%A4nnyt_p%C3%A4%C3%A4t%C3%B6s.pdf'
         url = request.GET.get("analysedoc", '')
         r = requests.get(url, stream=True)
 
-        if r.status_code is not 200:
+        if r.status_code != 200:
             return HttpResponse(f'Please give a valid url')
         else:
             with open('media/raw_example.pdf', 'wb') as f:
@@ -860,53 +890,47 @@ def analysedoc(request):
             for page in pdf_reader.pages:
                 text += page.extract_text()
             text_string = str(text)
-
-            turbomode_messages = [{"role": "system", "content": ""}]
-            turbomode_messages[0] = {
-                "role": "system",
-                "content": "You are a University level Scientist who knows well how to analyse and review scientific "
-                           "docs."
-            }
-            turbomode_messages.append(
-                {
-                    "role": "user",
-                    "content": f"Identify the key findings and implications of this research paper: {text_string[:18000]}."
-                               f"Summarize the main arguments at end. Use html bulleted lists when appropriate."
-                }
-            )
-
-            completion = openai.ChatCompletion.create(
-                model=model_chat,
-                messages=turbomode_messages,
-            )
-            reply = completion.choices[0].message['content']
-
-            return HttpResponse(f'<p style="width: auto">{reply}</p>')
+            request.session['text_string'] = text_string
+            doc_size = len(text_string)
+            if doc_size < size_parameter:
+                # reply = makeanalysis(request, size_parameter)
+                return makeanalysis(request)
+                # return HttpResponse(f'<p style="width: auto">{reply}</p>')
+            else:
+                doc_share = int(round(size_parameter/doc_size, 2)*100)
+                return render(request, 'partials/make_analysis.html', {'doc_share': doc_share})
 
     return render(request, "index.html")
 
 
-def indexexamples(request):
-    return render(request, 'indexexamples.html')
-
-
-def indexexampleopen(request, id):
-    form = AllForm
-    context = {
-        'form': form
+def makeanalysis(request):
+    turbomode_messages = [{"role": "system", "content": ""}]
+    turbomode_messages[0] = {
+        "role": "system",
+        "content": "You are a University level Scientist who knows well how to analyse and review scientific "
+                   "docs."
     }
-    tool = 'index.html'
-    start = f'<div id="{id}"'
-    html = render_to_string(tool, context)
-    start_index = html.find(start)
-    end_index = html.find('<br>', start_index)
-    extracted = html[start_index:end_index + + len('</div></div>')]
-    extracted_html = f'{extracted}</div></div>'
+    turbomode_messages.append(
+        {
+            "role": "user",
+            "content": f"Identify the key findings and implications of this research paper: {request.session['text_string'][:size_parameter]}."
+                       f"Summarize the main arguments at end. Use html bulleted lists when appropriate."
+        }
+    )
+    completion = openai.ChatCompletion.create(
+        model=model_chat,
+        messages=turbomode_messages,
+    )
+    reply = completion.choices[0].message['content']
 
-    template_string = extracted_html
-    template = Template(template_string)
-    context = RequestContext(request)
-    rendered_template = template.render(context)
+    return HttpResponse(f'<p style="width: auto">{reply}</p>')
 
-    return render(request, 'partials/indexlanding.html', {'rendered_template': rendered_template})
+
+def doembedding(request):
+    openai.api_key = OPENAI_API_KEY
+    response = openai.Embedding.create(
+        input="Your text string goes here",
+        model="text-embedding-ada-002"
+    )
+    embeddings = response['data'][0]['embedding']
 

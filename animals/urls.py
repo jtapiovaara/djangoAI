@@ -1,7 +1,10 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from animals import views
 
 urlpatterns = [
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('', views.startindex, name='startindex'),
     path('toemoji/', views.toemoji, name='toemoji'),
     path('studypoints/', views.studypoints, name='studypoints'),
@@ -30,6 +33,7 @@ urlpatterns = [
     path('comparedocs/', views.comparedocs, name='comparedocs'),
     path('whatsup/', views.whatsup, name='whatsup'),
     path('analysedoc/', views.analysedoc, name='analysedoc'),
+    path('makeanalysis/', views.makeanalysis, name='makeanalysis'),
     path('indexexamples/', views.indexexamples, name='indexexamples'),
     path('indexexamples/<str:id>', views.indexexampleopen, name='indexexampleopen'),
 ]

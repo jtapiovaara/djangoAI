@@ -61,3 +61,14 @@ class Completestory(models.Model):
     def completestorytalteen(cls, name, content, rolls, image):
         completestory = cls(name=name, content=content, rolls=rolls, image=image)
         return completestory
+
+
+class Djangoaiuser(models.Model):
+    firstname = models.CharField(max_length=32, blank=True)
+    lastname = models.CharField(max_length=32, blank=True)
+    username = models.CharField(max_length=24)
+    openaikey = models.CharField(max_length=128, blank=True)
+    openaiorg = models.CharField(max_length=128, blank=True)
+
+    def __str__(self):
+        return self.username

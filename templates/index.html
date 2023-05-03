@@ -3,6 +3,11 @@
 {% block page_content %}
 <body>
 <div class="w3-right"><a href="{% url 'indexexamples' %}"><small>Index of Examples</small></a></div>
+<div>
+    <a class="w3-btn w3-ripple w3-blue"
+       href="{% url 'logout' %}"
+       style="text-decoration: none; opacity: 0.8;">Logout & Leave</a>
+</div>
 <div class="w3-container w3-white">
     <div id="toemoji" class="w3-container w3-cell w3-quarter w3-margin-bottom">
         <div class="w3-padding">
@@ -113,6 +118,10 @@
             <h3><img src="{% static 'anything.jpg' %}"
                  class="icon">&nbsp;Ask me anything</h3>
             <div>
+                <p class="w3-small"><b>Some food for creativity:</b></p>
+                <p class="w3-small">In which European countries should I first launch my vegan protein bars?</p>
+                <p class="w3-small">Write me a resignation letter to my boss at IBM</p>
+                <p class="w3-small">Explore the possibility there existed an advanced pre-Ice Age civilization</p>
                 <form>
                     {{ form.askanything }}
                     <button type="submit"
@@ -441,6 +450,7 @@
                  class="icon">&nbsp;Analyse doc in the web</h3>
             <form>
                 {{ form.analysedoc }}
+                <p class="w3-small">Consider passing docs that are no more than 10 pgs. chatGPT restriction.</p>
                 <button class="w3-margin-top" type="submit"
                         hx-get="{% url 'analysedoc' %}"
                         hx-include="[name='analysedoc']"

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from animals.models import Chat, Personality, Story, Completestory
+from animals.models import Chat, Personality, Story, Completestory, Djangoaiuser
 
 
 class ChatAdmin(admin.ModelAdmin):
@@ -16,3 +16,4 @@ admin.site.register(Chat, ChatAdmin)
 admin.site.register(Personality)
 admin.site.register(Story, StoryAdmin)
 admin.site.register(Completestory)
+admin.site.register(Djangoaiuser)
