@@ -1,0 +1,9 @@
+{% load static %}
+<p>Document is too big, only {{ doc_share }}% from the beginning will be analysed, consider smaller chunk.</p>
+{#<button class="w3-margin-top" type="submit">Cancel</button>#}
+<button class="w3-margin-top"
+        type="submit"
+        hx-get="{% url 'makeanalysis' %}"
+        hx-target="#analysis">&nbsp;Perform anyway&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px"></button>

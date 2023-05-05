@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_content %}
+
+<style>
+    .center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 50%;
+    }
+    .icon-item {
+        align-items: flex-start;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        min-width: 0;
+        transition: opacity .15s;
+    }
+    .icon-item-icon {
+        border-radius: 4px;
+        color: #fff;
+        flex: 0 0 auto;
+        font-size: 24px;
+        line-height: 0px;
+        padding: 15px;
+    }
+    .purple-gradient-bg {
+        background-color: #5436da;
+        background-image: url(https://cdn.openai.com/API/images/icon_bg_blue.svg);
+        background-size: cover;
+    }
+    .red-gradient-bg {
+        background-color: #ef4146;
+        background-image: url(https://cdn.openai.com/API/images/icon_bg_red.svg);
+        background-size: cover;
+    }
+    .green-gradient-bg {
+        background-color: #19c37d;
+        background-image: url(https://cdn.openai.com/API/images/icon_bg_green.svg);
+        background-size: cover;
+    }
+    .pink-gradient-bg {
+        background-color: #dd5ce5;
+        background-image: url(https://cdn.openai.com/API/images/icon_bg_magenta.svg);
+        background-size: cover;
+    }
+    .orange-gradient-bg {
+        background-color: #f4ac36;
+        background-image: url(https://cdn.openai.com/API/images/icon_bg_orange.svg);
+        background-size: cover;
+    }
+    .icon-item-right {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding-left: 16px;
+    }
+    .icon-item-title {
+        display: inline-block;
+        margin-bottom: 2px;
+        margin-top: 3px;
+        transition: color .15s;
+    }
+    .icon-item-desc {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+    }
+    a {
+        text-decoration: none;
+    }
+    img:hover {
+      width: 58px;
+      transition: width 1s;
+    }
+</style>
+<body>
+<div class="w3-container w3-center">
+    <a class="w3-btn w3-blue"
+       href="{% url 'logout' %}"
+       style="text-decoration: none; opacity: 0.8;">Logout & Leave</a>
+</div>
+<div class="w3-center">
+    <h1><b>OpenAI Examples</b></h1>
+    <h3 style="opacity: 0.6">Explore what's possible with some cool applications</h3></div>
+<hr>
+    <div class="w3-container w3-margin">
+        <div id="toemoji" class="w3-cell w3-half w3-padding w3-margin-bottom">
+                <a class="icon-item"
+                   href="{% url 'indexexampleopen' 'toemoji' %}">
+                    <img src="{% static 'emojismile.png' %}" class="icon-item-icon purple-gradient-bg icon">
+                    <div class="icon-item-right">
+                        <div class="icon-item-title w3-large"><b>&nbsp;Turn it to emoji's</b></div>
+                        <div class="icon-item-desc">&nbsp;Emoji-fy your favourite movie</div>
+                    </div></a>
+            </div>
+        <div id="studypoints" class="w3-cell w3-half w3-padding">
+                <a class="icon-item"
+                   href="{% url 'indexexampleopen' 'studypoints' %}">
+                    <img src="{% static 'studypoints.png' %}" class="icon-item-icon red-gradient-bg icon">
+                    <div class="icon-item-right">
+                        <div class="icon-item-title w3-large"><b>&nbsp;What to study?</b></div>
+                        <div class="icon-item-desc">&nbsp;5 key points to know about</div>
+                    </div></a>
+            </div>
+        </div >
+    <div class="w3-container w3-margin">
+        <div id="cats" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'cats' %}">
+                <img src="{% static 'cat.png' %}" class="icon-item-icon pink-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Name your Pet</b></div>
+                    <div class="icon-item-desc">&nbsp;simple awesomeness of AI</div>
+                </div></a>
+        </div>
+        <div id="books" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'books' %}">
+                <img src="{% static 'books.png' %}" class="icon-item-icon green-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Ask about literature</b></div>
+                    <div class="icon-item-desc">&nbsp;Stories and voices of America</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="stars" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'stars' %}">
+                <img src="{% static 'stars.png' %}" class="icon-item-icon orange-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Ask about Stars</b></div>
+                    <div class="icon-item-desc">&nbsp;science is serious, so is the answer</div>
+                </div></a>
+        </div>
+        <div id="askanything" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'askanything' %}">
+                <img src="{% static 'anything.jpg' %}" class="icon-item-icon purple-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Ask me anything</b></div>
+                    <div class="icon-item-desc">&nbsp;The app that knows it all</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="artquestion" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'artquestion' %}">
+                <img src="{% static 'colosseum.png' %}" class="icon-item-icon red-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Ask about Art</b></div>
+                    <div class="icon-item-desc">&nbsp;use AI’s answer to create AI art</div>
+                </div></a>
+        </div>
+        <div id="codepython" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'codepython' %}">
+                <img src="{% static 'computer.png' %}" class="icon-item-icon pink-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Code smth, well, anythin</b></div>
+                    <div class="icon-item-desc">&nbsp;brutal and straight forward</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="askbuffet" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'askbuffet' %}">
+                <img src="{% static 'finance.png' %}" class="icon-item-icon green-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Ask Warren Buffet</b></div>
+                    <div class="icon-item-desc">&nbsp;forecasting means looking back</div>
+                </div></a>
+        </div>
+        <div id="schufflecards" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'schufflecards' %}">
+                <img src="{% static 'deck.png' %}" class="icon-item-icon orange-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Deck of Cards</b></div>
+                    <div class="icon-item-desc">&nbsp;no one is perfect</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="turbomode" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'turbomode' %}">
+                <img src="{% static 'chat.png' %}" class="icon-item-icon purple-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Chat in Turbo mode</b></div>
+                    <div class="icon-item-desc">&nbsp;that’s the way mate!</div>
+                </div></a>
+        </div>
+        <div id="storycubesstory" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'storycubesstory' %}">
+                <img src="{% static 'dog.png' %}" class="icon-item-icon red-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Play StoryCubes</b></div>
+                    <div class="icon-item-desc">&nbsp;destroying all the creativity</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="prompter" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'prompter' %}">
+                <img src="{% static 'process.gif' %}" class="icon-item-icon pink-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Prompts</b></div>
+                    <div class="icon-item-desc">&nbsp;best prompts ‘cause prompts are the best</div>
+                </div></a>
+        </div>
+        <div id="getscience" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'getscience' %}">
+                <img src="{% static 'science.png' %}" class="icon-item-icon green-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Get Science papers</b></div>
+                    <div class="icon-item-desc">&nbsp;don't believe, show the references</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="justdraw" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'justdraw' %}">
+                <img src="{% static 'asciidog.png' %}" class="icon-item-icon orange-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Draw ascii</b></div>
+                    <div class="icon-item-desc">&nbsp;so simple, but - simple</div>
+                </div></a>
+        </div>
+        <div id="comparedocs" class="w3-cell w3-half w3-padding">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'comparedocs' %}">
+                <img src="{% static 'compare.png' %}" class="icon-item-icon purple-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Compare two documents</b></div>
+                    <div class="icon-item-desc">&nbsp;don't show this to students</div>
+                </div></a>
+        </div>
+    </div>
+    <div class="w3-container w3-margin">
+        <div id="whatsup" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'whatsup' %}">
+                <img src="{% static 'whatsup.png' %}" class="icon-item-icon red-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Latest news. You're welcome</b></div>
+                    <div class="icon-item-desc">&nbsp;Yes, it does the Internet</div>
+                </div></a>
+        </div>
+        <div id="analysedoc" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'analysedoc' %}">
+                <img src="{% static 'compare.png' %}" class="icon-item-icon pink-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Analyse doc in the web</b></div>
+                    <div class="icon-item-desc">&nbsp;get expert analysis on your paper</div>
+                </div></a>
+        </div>
+    </div>
+</body>
+{% endblock %}

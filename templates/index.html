@@ -3,13 +3,12 @@
 {% block page_content %}
 <body>
 <div class="w3-right"><a href="{% url 'indexexamples' %}"><small>Index of Examples</small></a></div>
-<div>
+<div class="w3-container w3-center">
     <a class="w3-btn w3-ripple w3-blue"
-       href="{% url 'logout' %}"
-       style="text-decoration: none; opacity: 0.8;">Logout & Leave</a>
+       href="{% url 'logout' %}">Logout & Leave</a>
 </div>
 <div class="w3-container w3-white">
-    <div id="toemoji" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="toemoji" class="w3-container w3-margin-bottom">
         <div class="w3-padding">
             <h3><img src="{% static 'emojismile.png' %}"
                  class="icon">&nbsp;Turn it to emoji's</h3>
@@ -26,7 +25,7 @@
             <div id="emojiresponse"></div><br>
         </div>
     </div>
-    <div id="studypoints" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="studypoints" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'studypoints.png' %}"
                  class="icon">&nbsp;What to study?</h3>
@@ -45,7 +44,7 @@
     </div>
 </div>
 <div class="w3-container w3-green">
-    <div id="cats" class="w3-container w3-cell w3-quarter">
+    <div id="cats" class="w3-container">
         <div class="w3-padding" >
             <h3><img src="{% static 'cat.png' %}"
                      class="icon">&nbsp;Name your Pet</h3>
@@ -75,7 +74,7 @@
             <div id="kuva"></div><br>
         </div>
     </div>
-    <div id="books" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="books" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'books.png' %}"
                  class="icon">&nbsp;About books</h3>
@@ -94,7 +93,7 @@
             <div id="aboutthebook"></div><br>
         </div>
     </div>
-    <div id="stars" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="stars" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'stars.png' %}"
                  class="icon">&nbsp;Ask about stars</h3>
@@ -113,7 +112,7 @@
             <div id="fromstars"></div><br>
         </div>
     </div>
-    <div id="askanything" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="askanything" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'anything.jpg' %}"
                  class="icon">&nbsp;Ask me anything</h3>
@@ -138,7 +137,7 @@
     </div>
 </div>
 <div class="w3-container w3-yellow">
-    <div id="artquestion" class="w3-container w3-cell w3-quarter">
+    <div id="artquestion" class="w3-container">
         <div class="w3-padding" >
             <h3><img src="{% static 'colosseum.png' %}"
                  class="icon">&nbsp;Ask about Art</h3>
@@ -169,7 +168,7 @@
             <div id="newpainting" class="w3-margin"></div><br>
         </div>
     </div>
-    <div id="codepython" class="w3-container w3-cell w3-quarter">
+    <div id="codepython" class="w3-container">
         <div class="w3-padding" >
             <h3><img src="{% static 'computer.png' %}"
                  class="icon">&nbsp;Code something, well, anything..</h3>
@@ -188,7 +187,7 @@
             <div id="fromcodingmachine"></div><br>
         </div>
     </div>
-    <div id="askbuffet" class="w3-container w3-cell w3-quarter">
+    <div id="askbuffet" class="w3-container">
         <div class="w3-padding" >
             <h3><img src="{% static 'finance.png' %}"
                  class="icon">&nbsp;Ask Warren Buffet</h3>
@@ -210,7 +209,7 @@
         </div>
     </div>
 </div>
-    <div id="schufflecards" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="schufflecards" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'deck.png' %}"
                      class="icon">&nbsp;Deck of Cards</h3>
@@ -230,7 +229,7 @@
     </div>
 </div>
 <div class="w3-container w3-red">
-    <div id="turbomode" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="turbomode" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'chat.png' %}"
                  class="icon">&nbsp;Chat in Turbo mode</h3>
@@ -300,7 +299,7 @@
             <div id="coolimage"></div><br>
         </div>
     </div>
-    <div id="storycubesstory" class="w3-container w3-cell w3-quarter">
+    <div id="storycubesstory" class="w3-container">
         <div class="w3-padding" >
             <img src="{% static 'storycubes.png' %}" style="width: 300px"><h3>&nbsp;Play StoryCubes</h3>
             <div>
@@ -361,7 +360,7 @@
             </div>
         </div>
     </div>
-    <div id="prompter" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="prompter" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'process.gif' %}"
                  class="icon">&nbsp;Prompter is coming..</h3>
@@ -372,7 +371,7 @@
     </div>
 </div>
 <div class="w3-container w3-purple">
-    <div id="getscience" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="getscience" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'science.png' %}"
                  class="icon">&nbsp;Get Science papers</h3>
@@ -390,7 +389,7 @@
             <div id="sciencerefs"></div><br>
         </div>
     </div>
-    <div id="justdraw" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="justdraw" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'asciidog.png' %}"
                  class="icon">&nbsp;AI can draw ascii</h3>
@@ -407,7 +406,7 @@
             <div id="asciiart"></div><br>
         </div>
     </div>
-    <div id="comparedocs" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="comparedocs" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'compare.png' %}"
                  class="icon">&nbsp;Compare two documents</h3>
@@ -425,7 +424,7 @@
             <div id="docanalysis"></div><br>
         </div>
     </div>
-    <div id="whatsup" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+    <div id="whatsup" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'whatsup.png' %}"
                  class="icon">&nbsp;Latest news. You're welcome</h3>
@@ -444,7 +443,7 @@
     </div>
 </div>
 <div class="w3-container w3-gray">
-     <div id="analysedoc" class="w3-container w3-cell w3-quarter w3-margin-bottom">
+     <div id="analysedoc" class="w3-container w3-margin-bottom">
         <div class="w3-padding" >
             <h3><img src="{% static 'compare.png' %}"
                  class="icon">&nbsp;Analyse doc in the web</h3>

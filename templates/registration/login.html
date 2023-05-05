@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block page_content %}
+    {% load static %}
+<style>
+    body {
+        background-image: url("{% static 'login_backround.png'%}");
+        background-repeat: no-repeat;
+        background-size: auto;
+    }
+</style>
+<body>
+    <div class="w3-container">
+    <h3>Welcome to play around with OpenAI</h3>
+
+        <title>Login to djangoAI</title>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form }}
+        {#    <p>Jos et ole vielä rekisteröitynyt, voit tehdä sen <a href="/register">täällä.</a> </p>#}
+            <button type="submit" class="w3-btn  w3-margin-top">Lets go!</button>
+        </form>
+    </div>
+</body>
+{% endblock %}

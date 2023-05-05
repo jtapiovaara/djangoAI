@@ -8,7 +8,6 @@ import openai
 import random
 import gtts
 from playsound import playsound
-import pprint
 import re
 
 from django.http import HttpResponse
@@ -31,9 +30,6 @@ model_chat = 'gpt-4'
 model_embedding = 'text-embedding-ada-002'
 # size_parameter defines the chunk that is possible to send to chatGPT in one time
 size_parameter = 18000
-
-# user_talks = []
-# ai_talks = []
 turbomode_messages = [{"role": "system", "content": ""}]
 
 
@@ -206,7 +202,6 @@ def kirjallisuus(request):
         )
 
         reply = completion.choices[0].message['content']
-        logger.info(reply)
 
         completion = openai.ChatCompletion.create(
             model=model_chat,
@@ -218,9 +213,15 @@ def kirjallisuus(request):
         )
 
         poem = completion.choices[0].message['content']
-        logger.info(poem)
 
-        return HttpResponse(f'<p>{reply}</p><p><pre>{poem}</pre></p>')
+        prompt = f'{reply[0:320]}'
+        r = openai.Image.create(
+            prompt=f'{prompt}',
+            n=1,
+            size='256x256')
+        image_url = r['data'][0]['url']
+
+        return HttpResponse(f'<p>{reply}</p><img src="{image_url}" style="width: 250px"><p class="w3-small"><pre>{poem}</pre></p>')
 
     return render(request, "index.html")
 
@@ -239,10 +240,8 @@ def stars(request):
         )
 
         reply = completion.choices[0].message['content']
-        # print(completion)
 
         return HttpResponse(f'<p>{reply}</p>')
-        # return HttpResponse(f'<p>GPT-3.5:&nbsp;{result}</p><p>GPT-4:&nbsp;{reply}</p>')
     return render(request, "index.html")
 
 
@@ -294,7 +293,6 @@ def artquestion(request):
 
 def tyylitaulu(request):
     """ This function takes kysymys() result and uses it as a prompt to create DALLE2 image """
-    # openai.organization = OPENAI_ORG
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     vastaus_kuvaksi_hx = request.GET.get('artanswer', '')
     prompt = f'{vastaus_kuvaksi_hx[0:320]}'
@@ -363,7 +361,6 @@ def askbuffet(request):
 
 
 def schufflecards(request):
-    # openai.organization = OPENAI_ORG
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     cards = [
         'Diamonds',
@@ -446,9 +443,6 @@ def turbomode(request):
 
         chat_reply = request.session['this_chat']
         chat_rows = re.split("/n", chat_reply)
-        # pp = pprint.PrettyPrinter(indent=4)
-        # pp.pprint(turbomode_messages)
-        # print(completion)
         context = {
             'chat_rows': chat_rows,
         }
@@ -485,8 +479,6 @@ def chatmodal(request, id):
     chat_name = chat.name
     chat_info = chat.dialoque
     chat_time = chat.timestamp
-    # user = 'User'
-    # personality = str(Chat.objects.get(id=id).personality).capitalize()
     chat_rows = re.split("/n", chat_info)
 
     context = {
@@ -513,7 +505,6 @@ def chatimage(request, chat_id):
         )
 
         prompt = completion.choices[0].message['content']
-        # openai.organization = OPENAI_ORG
         openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
         r = openai.Image.create(
             prompt=f'{prompt}',
@@ -646,8 +637,6 @@ def storycubesstory(request):
         )
 
         reply = completion.choices[0].message['content']
-        # print(reply)
-        # print(f'Query Tokens: {response.usage.prompt_tokens}\nResponse Tokens: {response.usage.completion_tokens}')
         context = {
             'result': reply
         }
@@ -657,11 +646,9 @@ def storycubesstory(request):
 
 def readoutloud(request):
     """ Luetaan esimerkiksi AIn tuottama tarina ääneen. Hyvä. Tarvitaan vain pari kirjastoa. Check msu/tts_lang.py for
-    supported languages """
+    supported languages. Suomeksi tts_fi = gtts.gTTS(f'{readthis}', lang="fi")"""
     if request.method == "GET":
         readthis = request.GET.get("readme", "")
-        # tts_2 = gtts.gTTS(f'{readthis}', lang="de")
-        # tts_3 = gtts.gTTS(f'{readthis}', lang="fi")
         tts = gtts.gTTS(f'{readthis}')
         tts.save("answ.mp3")
         playsound("answ.mp3")
@@ -682,7 +669,6 @@ def storycubesimage(request):
     URL of the first image in the data attribute of the dictionary returned by the openai.Image.create method. This
     content was created by chatGPT."""
 
-    # openai.organization = OPENAI_ORG
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
 
     if request.method == "GET":
@@ -819,9 +805,7 @@ def comparedocs(request):
             messages=turbomode_messages,
         )
         reply = completion.choices[0].message['content']
-        reply_to_print = turbomode_messages
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(reply_to_print)
+
         return HttpResponse(f'<p><b>Comparison:</b>&nbsp;{reply}</p>')
     return render(request, "index.html")
 
@@ -853,12 +837,10 @@ def whatsup(request):
 
 
 def analysedoc(request):
+    """ e_u = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
+        e_lunes = 'https://www.lunes.fi/static/nados/docs/Lappi/rovaniemi_eelinm%C3%A4nty_p%C3%A4%C3%A4t%C3%B6s.pdf'"""
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
-    # size_parameter = 18000
     if request.method == 'GET':
-        e_u = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
-        e_lunes = 'https://www.lunes.fi/static/nados/docs/Lappi/rovaniemi_eelinm%C3%A4nty_p%C3%A4%C3%A4t%C3%B6s.pdf'
-        e_lunes_2 = 'https://www.lunes.fi/static/nados/docs/Pohjois-Savo/varkaus_kotipuronm%C3%A4nnyt_p%C3%A4%C3%A4t%C3%B6s.pdf'
         url = request.GET.get("analysedoc", '')
         r = requests.get(url, stream=True)
 
@@ -893,9 +875,7 @@ def analysedoc(request):
             request.session['text_string'] = text_string
             doc_size = len(text_string)
             if doc_size < size_parameter:
-                # reply = makeanalysis(request, size_parameter)
                 return makeanalysis(request)
-                # return HttpResponse(f'<p style="width: auto">{reply}</p>')
             else:
                 doc_share = int(round(size_parameter/doc_size, 2)*100)
                 return render(request, 'partials/make_analysis.html', {'doc_share': doc_share})

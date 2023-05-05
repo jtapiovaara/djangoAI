@@ -1,0 +1,25 @@
+{% load static %}
+<div id="modal" class="w3-modal" _="on closeModal add .closing then wait for animationend then remove me">
+    <div class="w3-modal-content">
+        <div class="w3-container w3-margin w3-padding">
+        <h3>{{ context.chat_name }}..</h3>
+        <div class="w3-center w3-margin" id="imagethisone"></div>
+            {%  for i in context.chat_rows %}
+                {% if i.0 == 'U' %}
+                    <p><small>{{ i }}</small></p>
+                {% else %}
+                    <small>{{ i }}</small>
+                {% endif %}
+            {% endfor %}
+        <p>{{ context.chat_time }}</p>
+        <hr>
+        <button _="on click trigger closeModal" disabled>Read loud</button>
+        <button _="on click trigger closeModal" disabled>Share</button>
+        <button hx-get="{% url 'chatimage' context.chat_id %}"
+                hx-target="#imagethisone">Image&nbsp;<img class="htmx-indicator w3-circle"
+                                                          src="{% static 'spinner.gif' %}"
+                                                          style="width: 14px"></button>
+        <button _="on click trigger closeModal">Close</button>
+        </div>
+    </div>
+</div>
