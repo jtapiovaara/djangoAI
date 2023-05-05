@@ -20,7 +20,6 @@ from django.contrib.auth.decorators import login_required
 
 from animals.forms import AllForm
 from animals.models import Chat, Personality, Story, Completestory, Djangoaiuser
-from djangoAI.settings import OPENAI_ORG, OPENAI_API_KEY
 
 logger = logging.getLogger(__name__)
 # model_coding = 'code-davinci-002'
@@ -44,6 +43,8 @@ def logout(request):
 
 @login_required
 def startindex(request):
+    userin = request.user.username
+    OPENAI_API_KEY = Djangoaiuser.objects.get(username__exact=userin).openaikey
     form = AllForm
     return render(request, "index.html", {'form': form})
 
@@ -75,7 +76,7 @@ def indexexampleopen(request, id):
 
 
 def toemoji(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         movie = request.GET.get("toemoji_movie", '')
         logger.info(movie)
@@ -91,7 +92,7 @@ def toemoji(request):
 
 
 def studypoints(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         studypoint = request.GET.get("studypoints", '')
         logger.info(studypoint)
@@ -123,8 +124,7 @@ def getimage(request):
     URL of the first image in the data attribute of the dictionary returned by the openai.Image.create method. This
     content was created by chatGPT."""
 
-    openai.organization = OPENAI_ORG
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == "GET":
         animal_to_pic = request.GET.get("animal", "")
         prompt = f'{animal_to_pic} fotorealistic cool cartoon style'
@@ -153,7 +153,7 @@ def animals(request):
     function in the Django web framework for rendering an HTML template. The render function takes in the request object
     and the name of the template file as arguments. This content was created by chatGPT."""
 
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == "GET":
         animal = request.GET.get('animal', '')
         # animal = request.POST["animal"]
@@ -190,7 +190,7 @@ Names:""".format(
 
 
 def kirjallisuus(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         author = request.GET.get('author', '')
         book = request.GET.get('book', '')
@@ -226,7 +226,7 @@ def kirjallisuus(request):
 
 
 def stars(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         spacethought = request.GET.get('stars', '')
 
@@ -247,7 +247,7 @@ def stars(request):
 
 
 def askanything(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         anyquestion = request.GET.get('askanything', '')
         turbomode_messages = [{"role": "system", "content": ""}]
@@ -272,7 +272,7 @@ def askanything(request):
 
 
 def artquestion(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == "GET":
         question = request.GET.get("artquestion", "")
         artstyle = request.GET.get("artstyle", "")
@@ -287,15 +287,15 @@ def artquestion(request):
         )
         reply = completion.choices[0].message['content']
 
-        return HttpResponse(f'<textarea name="artanswer" rows="7"cols="40" style="border: none">{reply}</textarea>')
+        return HttpResponse(f'<textarea name="artanswer" rows="7" cols="40" style="border: none">{reply}</textarea>')
 
     return render(request, "index.html")
 
 
 def tyylitaulu(request):
     """ This function takes kysymys() result and uses it as a prompt to create DALLE2 image """
-    openai.organization = OPENAI_ORG
-    openai.api_key = OPENAI_API_KEY
+    # openai.organization = OPENAI_ORG
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     vastaus_kuvaksi_hx = request.GET.get('artanswer', '')
     prompt = f'{vastaus_kuvaksi_hx[0:320]}'
     r = openai.Image.create(
@@ -308,7 +308,7 @@ def tyylitaulu(request):
 
 
 def codepython(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         codethought = request.GET.get('codepython', '')
 
@@ -330,7 +330,7 @@ def codepython(request):
 
 
 def askbuffet(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         company = request.GET.get("askbuffet", '')
         turbomode_messages = [{"role": "system", "content": ""}]
@@ -363,8 +363,8 @@ def askbuffet(request):
 
 
 def schufflecards(request):
-    openai.organization = OPENAI_ORG
-    openai.api_key = OPENAI_API_KEY
+    # openai.organization = OPENAI_ORG
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     cards = [
         'Diamonds',
         'Spades',
@@ -389,11 +389,11 @@ def schufflecards(request):
     image = r['data'][0]['url']
     return HttpResponse(f'<img src="{image}" style="width: 200px"><p><small>AI is still evolving. Request was for '
                         f'"image of a card dealer in leather tie holding cards {pick}. Detailed, '
-                        f'photorealistic"</small></p><p><small>Cards were picked randomly by my code</small></p>')
+                        f'photorealistic"</small></p><p><small>Cards were picked randomly</small></p>')
 
 
 def turbomode(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == "GET":
         stylemode = request.GET.get("stylemode", '')
         chatquery = request.GET.get("turbomode", '')
@@ -499,7 +499,7 @@ def chatmodal(request, id):
 
 
 def chatimage(request, chat_id):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         modal = Chat.objects.get(id=chat_id).personality.character
         prompt = f'Generate a creative and engaging Dall-E prompt for an image using "{modal}" as your inspiration. ' \
@@ -513,8 +513,8 @@ def chatimage(request, chat_id):
         )
 
         prompt = completion.choices[0].message['content']
-        openai.organization = OPENAI_ORG
-        openai.api_key = OPENAI_API_KEY
+        # openai.organization = OPENAI_ORG
+        openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
         r = openai.Image.create(
             prompt=f'{prompt}',
             n=1,
@@ -628,7 +628,7 @@ def rolldicies(request):
 
 def storycubesstory(request):
     """ Muutettu käyttämään GPT-4 mallia.  Esimerkki vastausten tasossa on dokumentissa 'Diff_btw_gpt35_gpt4_Story' """
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
 
     if request.method == "GET":
         roll = request.GET.get('roll', '')
@@ -682,8 +682,8 @@ def storycubesimage(request):
     URL of the first image in the data attribute of the dictionary returned by the openai.Image.create method. This
     content was created by chatGPT."""
 
-    openai.organization = OPENAI_ORG
-    openai.api_key = OPENAI_API_KEY
+    # openai.organization = OPENAI_ORG
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
 
     if request.method == "GET":
         to_img = request.GET.get('readme', '')
@@ -724,7 +724,7 @@ def savestory(request):
 
 
 def getscience(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         scienceq = request.GET.get("getscience", '')
         prompt = f'provide me with max 8 references and links on {scienceq} field'
@@ -751,7 +751,7 @@ def getscience(request):
 
 
 def justdraw(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         drawrequest = request.GET.get("justdraw", '')
         logger.info(drawrequest)
@@ -778,7 +778,7 @@ def justdraw(request):
 
 
 def comparedocs(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         doc_one = request.GET.get("comparedocsone", '')
         doc_two = request.GET.get("comparedocstwo", '')
@@ -790,8 +790,8 @@ def comparedocs(request):
         turbomode_messages.append(
             {
                 "role": "user",
-                "content": f"read document {doc_one[:8000]} and document {doc_two[:8000]}. Reply with an idea of a prompt to "
-                           f"compare them with some scientific approach."
+                "content": f"read document {doc_one[:8000]} and document {doc_two[:8000]}. Reply with an idea of a "
+                           f"prompt to compare them with some scientific approach."
             }
         )
 
@@ -833,7 +833,7 @@ def whatsup(request):
     by President Joe Biden. You can optionally provide a query parameter to search for specific remarks.
     fiscalnote.search_articles_roll_call_articles__get: This endpoint allows you to search for news articles related to
     Congressional people and proceedings. You can provide a query parameter to specify the search criteria."""
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         newsquest = request.GET.get("whatsup", '')
         source_1 = 'fiscalnote.list_biden_remarks_remarks_biden__get latest five remarks'
@@ -853,7 +853,7 @@ def whatsup(request):
 
 
 def analysedoc(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     # size_parameter = 18000
     if request.method == 'GET':
         e_u = 'https://julkaisut.valtioneuvosto.fi/bitstream/handle/10024/163864/VM_2022_12.pdf?sequence=1&isAllowed=y'
@@ -914,7 +914,7 @@ def makeanalysis(request):
         {
             "role": "user",
             "content": f"Identify the key findings and implications of this research paper: {request.session['text_string'][:size_parameter]}."
-                       f"Summarize the main arguments at end. Use html bulleted lists when appropriate."
+                       f"Summarize the main arguments at end."
         }
     )
     completion = openai.ChatCompletion.create(
@@ -923,11 +923,11 @@ def makeanalysis(request):
     )
     reply = completion.choices[0].message['content']
 
-    return HttpResponse(f'<p style="width: auto">{reply}</p>')
+    return HttpResponse(f'<p>{reply}</p>')
 
 
 def doembedding(request):
-    openai.api_key = OPENAI_API_KEY
+    openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     response = openai.Embedding.create(
         input="Your text string goes here",
         model="text-embedding-ada-002"
