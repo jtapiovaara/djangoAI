@@ -173,3 +173,21 @@ class AllForm(forms.Form):
                 'placeholder': "Drop link to pdf here.."
             })
     )
+
+    summarizetext = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'rows': 8,
+                'cols': 36,
+                'placeholder': "Copy or (type if you wish) text here.."
+            })
+    )
+
+    imageanaysis = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'rows': 8,
+                'cols': 36,
+                'placeholder': "Copy or drop url of an image.."
+            })
+    )

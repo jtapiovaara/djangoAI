@@ -68,6 +68,7 @@
                         data-hx-target="#kuva">2. Get picture&nbsp;<img class="htmx-indicator w3-circle"
                                                                    src="{% static 'process.gif' %}"
                                                                    style="width: 24px"></button>
+                <p class="w3-small"> Neat & Hidden: Get just any image by asking for it and clicking button #2.</p>
 
             </form>
             <div id="result" class="w3-margin-top"></div>
@@ -287,13 +288,17 @@
                 </form>
             </div>
             <div id="flush">
-                <button type="submit"
-                        class="w3-margin-top"
-                        hx-get="{% url 'flushchat' %}">&nbsp;Save & flush chat&nbsp;☐&nbsp;</button>
-                <button type="submit"
+                <div>
+                    <button type="submit"
+                            class="w3-margin-top"
+                            hx-get="{% url 'flushchat' %}">&nbsp;Save & flush chat&nbsp;☐&nbsp;</button>
+                </div>
+                <div>
+                    <button type="submit"
                         class="w3-margin-top"
                         hx-get="{% url 'chatstories' %}"
                         hx-target="#storieslist">&nbsp;Read stories&nbsp;</button>
+                </div>
             </div>
             <div id="storieslist"></div>
             <div id="coolimage"></div><br>
@@ -459,6 +464,42 @@
                 </button>
             </form>
             <div id="analysis"></div><br>
+        </div>
+    </div>
+     <div id="summarizetext" class="w3-container w3-margin-bottom">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'summary.png' %}"
+                 class="icon">&nbsp;Say it short</h3>
+            <form>
+                {{ form.summarizetext }}
+                <p class="w3-small">Consider text that are no more than 10 pgs. chatGPT restriction.</p>
+                <button class="w3-margin-top" type="submit"
+                        hx-get="{% url 'summarizetext' %}"
+                        hx-include="[name='summarizetext']"
+                        hx-target="#summary">&nbsp;=>&nbsp;Make summary&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="summary"></div><br>
+        </div>
+    </div>
+     <div id="imageanaysis" class="w3-container w3-margin-bottom">
+        <div class="w3-padding" >
+            <h3><img src="{% static 'robotpainting.png' %}"
+                 class="icon">&nbsp;I, AI can see</h3>
+            <form>
+                {{ form.imageanaysis }}
+                <p class="w3-small">No need to think, AI can tell you. Still bit hallucinating</p>
+                <button class="w3-margin-top" type="submit"
+                        hx-get="{% url 'imageanaysis' %}"
+                        hx-include="[name='imageanaysis']"
+                        hx-target="#aboutimage">&nbsp;=>&nbsp;Make summary&nbsp;<img class="htmx-indicator w3-circle"
+                                                      src="{% static 'process.gif' %}"
+                                                      style="width: 24px">
+                </button>
+            </form>
+            <div id="aboutimage"></div><br>
         </div>
     </div>
 </div>

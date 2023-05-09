@@ -21,11 +21,8 @@ from animals.forms import AllForm
 from animals.models import Chat, Personality, Story, Completestory, Djangoaiuser
 
 logger = logging.getLogger(__name__)
-# model_coding = 'code-davinci-002'
 model_coding = 'gpt-3.5-turbo'
-# engine_completions = 'text-davinci-003'
 model_completions = 'text-davinci-003'
-# model_chat = 'gpt-3.5-turbo'
 model_chat = 'gpt-4'
 model_embedding = 'text-embedding-ada-002'
 # size_parameter defines the chunk that is possible to send to chatGPT in one time
@@ -71,18 +68,48 @@ def indexexampleopen(request, id):
     return render(request, 'partials/indexlanding.html', {'rendered_template': rendered_template})
 
 
+def do_embedding(model_embedding, input):
+    """ This is an oneshot Embeddings completion (text-embedding-ada-002) that can be used 'always' instead of
+    repeating it"""
+    response = openai.Embedding.create(
+        input=input,
+        model=model_embedding
+    )
+    do_embedding_reply = response['data'][0]['embedding']
+    return do_embedding_reply
+
+
+def get_completion_chat(model_chat, turbomode_messages):
+    """ This is an oneshot CHAT completion (using GPT-4) that can be used 'always' instead of repeating it """
+    completion = openai.ChatCompletion.create(
+        model=model_chat,
+        messages=turbomode_messages,
+        temperature=0,
+    )
+    get_completion_chat_reply = completion.choices[0].message['content']
+    return get_completion_chat_reply
+
+
+def get_completion(model_completions, prompt):
+    """ This is an oneshot completion (using gpt-3.5-turbo) that can be used 'always' instead of repeating it """
+    response = openai.Completion.create(
+        model=model_completions,
+        prompt=prompt,
+        temperature=0.5,
+        max_tokens=450
+    )
+    get_completion_result = response.choices[0].text
+    return get_completion_result
+
+
 def toemoji(request):
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         movie = request.GET.get("toemoji_movie", '')
-        logger.info(movie)
         prompt = f'Convert movie titles into emoji.\n\nBack to the Future: 👨👴🚗🕒 \nBatman: 🤵🦇 \nTransformers: 🚗🤖 ' \
                  f'\nLord of the Ring:Return of the King: 🧙💍:🤴🔙\n{movie}'
-        response = openai.Completion.create(
-            model=model_completions,
-            prompt=prompt,
-        )
-        result = response.choices[0].text
+        result = get_completion(model_completions, prompt)
+
         return HttpResponse(f'<h3>{movie}{result}</h3>')
     return render(request, "index.html")
 
@@ -91,18 +118,9 @@ def studypoints(request):
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         studypoint = request.GET.get("studypoints", '')
-        logger.info(studypoint)
         prompt = f'What are 5 key points I should know when studying {studypoint}? Answer with an html bulleted list'
-        response = openai.Completion.create(
-            model=model_completions,
-            prompt=prompt,
-            temperature=0.3,
-            max_tokens=450,
-            top_p=1.0,
-            frequency_penalty=0.0,
-            presence_penalty=0.0
-        )
-        result = response.choices[0].text
+        result = get_completion(model_completions, prompt)
+
         return HttpResponse(f'{result}')
     return render(request, "index.html")
 
@@ -132,6 +150,20 @@ def getimage(request):
 
         return HttpResponse(f'<img src="{image_url}" style="width: 250px">')
     return render(request, "index.html")
+
+
+def generate_prompt(animal):
+    return """Suggest three names for an animal that is a superhero.
+Animal: Cat
+Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
+Animal: Dog
+Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
+Animal: Horse
+Names: White Fury, Black Beauty, The Queen Charme Asserdal
+Animal: {}
+Names:""".format(
+        animal.capitalize()
+    )
 
 
 def animals(request):
@@ -171,49 +203,24 @@ def animals(request):
     return render(request, "index.html", {'context': context})
 
 
-def generate_prompt(animal):
-    return """Suggest three names for an animal that is a superhero.
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: Horse
-Names: White Fury, Black Beauty, The Queen Charme Asserdal
-Animal: {}
-Names:""".format(
-        animal.capitalize()
-    )
-
-
 def kirjallisuus(request):
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         author = request.GET.get('author', '')
         book = request.GET.get('book', '')
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        turbomode_messages = [
                 {"role": "system", "content": "You are a literature reviewer understanding especially well classical "
                                               "american literature."},
                 {"role": "user", "content": f"Please write a short summary of book {book} by {author} using "
                                             f"his/her own writing style. Limit your answer to 100 words"},
             ]
-        )
-
-        reply = completion.choices[0].message['content']
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        reply = get_completion_chat(model_chat, turbomode_messages)
+        turbomode_messages = [
                 {"role": "system", "content": "You are a writer with great sence of classical poetry"},
                 {"role": "user", "content": f"Please write a representative poem about book {book} by {author}."
                                             f" Limit your answer to 50 words"},
             ]
-        )
-
-        poem = completion.choices[0].message['content']
-
+        poem = get_completion_chat(model_chat, turbomode_messages)
         prompt = f'{reply[0:320]}'
         r = openai.Image.create(
             prompt=f'{prompt}',
@@ -230,16 +237,11 @@ def stars(request):
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         spacethought = request.GET.get('stars', '')
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        turbomode_messages = [
                 {"role": "system", "content": "use scientific terms on your answer"},
                 {"role": "user", "content": f"{spacethought}"},
             ]
-        )
-
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'<p>{reply}</p>')
     return render(request, "index.html")
@@ -260,11 +262,7 @@ def askanything(request):
                 "content": f"{anyquestion} Use max 350 words"
             }
         )
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'<p>{reply}</p>')
     return render(request, "index.html")
@@ -276,15 +274,11 @@ def artquestion(request):
         question = request.GET.get("artquestion", "")
         artstyle = request.GET.get("artstyle", "")
         artstyle_ext = 'Contemporary'
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        turbomode_messages = [
                 {"role": "system", "content": f"You are an arts expert who highly values {artstyle_ext} art"},
                 {"role": "user", "content": f"{question}. Consider art style: {artstyle}"},
             ]
-        )
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'<textarea name="artanswer" rows="7" cols="40" style="border: none">{reply}</textarea>')
 
@@ -309,17 +303,11 @@ def codepython(request):
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
     if request.method == 'GET':
         codethought = request.GET.get('codepython', '')
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        turbomode_messages = [
                 {"role": "system", "content": 'You are system that is always using standards'},
                 {"role": "user", "content": f"{codethought}"},
             ]
-        )
-
-        reply = completion.choices[0].message['content']
-        logger.info(reply)
+        reply = get_completion_chat(model_chat, turbomode_messages)
         context = {
             'code_result': reply,
         }
@@ -348,13 +336,7 @@ def askbuffet(request):
                 "content": f"analyse {company}"
             }
         )
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'<p>Warren thinks you are a smartass!</p>{reply}')
     return render(request, "index.html")
@@ -426,13 +408,7 @@ def turbomode(request):
                 "content": f"{chatquery}"
             }
         )
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
         request.session['this_chat'] += f'/n{assistant}: {reply}'
         turbomode_messages.append(
             {
@@ -496,18 +472,14 @@ def chatimage(request, chat_id):
         modal = Chat.objects.get(id=chat_id).personality.character
         prompt = f'Generate a creative and engaging Dall-E prompt for an image using "{modal}" as your inspiration. ' \
                  f'Photorealistic. Canon EOS. Bokeh. Drone photography.'
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        turbomode_messages = [
                 {"role": "system", "content": 'You are system that knows about photography and is always creative'},
                 {"role": "user", "content": f"{prompt}"},
             ]
-        )
-
-        prompt = completion.choices[0].message['content']
+        img_prompt = get_completion_chat(model_chat, turbomode_messages)
         openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
         r = openai.Image.create(
-            prompt=f'{prompt}',
+            prompt=f'{img_prompt[0:320]}',
             n=1,
             size='512x512')
         image_url = r['data'][0]['url']
@@ -628,15 +600,12 @@ def storycubesstory(request):
         name = story.name
         style = story.styles
 
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=[
+        turbomode_messages = [
                 {"role": "system", "content": f"Use {name}, {style} as a theme"},
-                {"role": "user", "content": f"Write a short story containing the following words: {roll}."},
+                {"role": "user", "content": f"Write a short story containing the following words: {roll}. Use each "
+                                            f"word only once and in sequence order."},
             ]
-        )
-
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
         context = {
             'result': reply
         }
@@ -717,7 +686,7 @@ def getscience(request):
         turbomode_messages = [{"role": "system", "content": ""}]
         turbomode_messages[0] = {
             "role": "system",
-            "content": "Answer always correctly"
+            "content": "Answer always correctly. Seek for existing real documents for your answer"
         }
         turbomode_messages.append(
             {
@@ -725,12 +694,7 @@ def getscience(request):
                 "content": f"{prompt}. Reply in html table format."
             }
         )
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'{reply}')
     return render(request, "index.html")
@@ -752,12 +716,7 @@ def justdraw(request):
                 "content": f"use {drawrequest} as your ispiration"
             }
         )
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'<pre>{reply}</pre>')
     return render(request, "index.html")
@@ -780,12 +739,7 @@ def comparedocs(request):
                            f"prompt to compare them with some scientific approach."
             }
         )
-
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         turbomode_messages.append(
             {
@@ -800,11 +754,7 @@ def comparedocs(request):
                 "content": f'{prompt} Reply with max 450 words.'
             }
         )
-        completion = openai.ChatCompletion.create(
-            model=model_chat,
-            messages=turbomode_messages,
-        )
-        reply = completion.choices[0].message['content']
+        reply = get_completion_chat(model_chat, turbomode_messages)
 
         return HttpResponse(f'<p><b>Comparison:</b>&nbsp;{reply}</p>')
     return render(request, "index.html")
@@ -834,6 +784,25 @@ def whatsup(request):
         result = response.choices[0].text
         return HttpResponse(f'{result}')
     return render(request, "index.html")
+
+
+def makeanalysis(request):
+    turbomode_messages = [{"role": "system", "content": ""}]
+    turbomode_messages[0] = {
+        "role": "system",
+        "content": "You are a University level Scientist who knows well how to analyse and review scientific "
+                   "docs."
+    }
+    turbomode_messages.append(
+        {
+            "role": "user",
+            "content": f"Identify the key findings and implications of this research paper: {request.session['text_string'][:size_parameter]}."
+                       f"Summarize the main arguments at end."
+        }
+    )
+    reply = get_completion_chat(model_chat, turbomode_messages)
+
+    return HttpResponse(f'<p>{reply}</p>')
 
 
 def analysedoc(request):
@@ -883,34 +852,56 @@ def analysedoc(request):
     return render(request, "index.html")
 
 
-def makeanalysis(request):
-    turbomode_messages = [{"role": "system", "content": ""}]
-    turbomode_messages[0] = {
-        "role": "system",
-        "content": "You are a University level Scientist who knows well how to analyse and review scientific "
-                   "docs."
-    }
-    turbomode_messages.append(
-        {
-            "role": "user",
-            "content": f"Identify the key findings and implications of this research paper: {request.session['text_string'][:size_parameter]}."
-                       f"Summarize the main arguments at end."
-        }
-    )
-    completion = openai.ChatCompletion.create(
-        model=model_chat,
-        messages=turbomode_messages,
-    )
-    reply = completion.choices[0].message['content']
-
-    return HttpResponse(f'<p>{reply}</p>')
-
-
-def doembedding(request):
+def summarizetext(request):
     openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
-    response = openai.Embedding.create(
-        input="Your text string goes here",
-        model="text-embedding-ada-002"
-    )
-    embeddings = response['data'][0]['embedding']
+    if request.method == 'GET':
+        docis = request.GET.get("summarizetext", '')
+        turbomode_messages = [{"role": "system", "content": ""}]
+        turbomode_messages[0] = {
+            "role": "system",
+            "content": "You can summarize texts with good clarity"
+        }
+        turbomode_messages.append(
+            {
+                "role": "user",
+                "content": f"read this document: {docis}. Then summarize in at most 100 words. Use german language."
+            }
+        )
+        reply = get_completion_chat(model_chat, turbomode_messages)
+        return HttpResponse(f'{reply}')
+    return render(request, "index.html")
+
+
+def translatethis(request):
+    """ Try for example
+    user_messages = [ "La performance du système est plus lente que d'habitude.",
+    "Mi monitor tiene píxeles que no se iluminan.",
+    "Il mio mouse non funziona",
+    "Mój klawisz Ctrl jest zepsuty",
+    "我的屏幕在闪烁"]
+    for issue in
+    user_messages: prompt = f"Tell me what language this is: {issue}" lang = get_completion(prompt) print(f"Original
+    message ({lang}): {issue}") prompt = Translate the following  text to English and Korean: {issue} response =
+    response = get_completion(prompt)
+    ---
+    text = Got this for my daughter for her birthday cuz she keeps taking
+    mine from my room.  Yes, adults also like pandas too.  She takes it everywhere with her, and it's super soft
+    and cute.  One of the ears is a bit lower than the other, and I don't think that was designed to be
+    asymmetrical. It's a bit small for what I paid for it though. I think there might be other options that are
+    bigger for the same price.  It arrived a day earlier than expected, so I got to play with it myself before I
+    gave it to my daughter.
+    prompt = f"proofread and correct the following: {text}"
+    response = get_completion(prompt)
+    """
+    return HttpResponse("response here")
+
+
+def imageanaysis(request):
+    if request.method == 'GET':
+        openai.api_key = Djangoaiuser.objects.get(username__exact=request.user.username).openaikey
+        image_url = request.GET.get("imageanaysis", '')
+        prompt = f'Analyse what is in this image: {image_url}. Then summarize in at most 200 words.'
+        reply = get_completion(model_completions, prompt)
+        return HttpResponse(f'{reply}')
+    return render(request, "index.html")
 

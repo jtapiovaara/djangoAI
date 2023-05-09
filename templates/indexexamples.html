@@ -264,5 +264,25 @@
                 </div></a>
         </div>
     </div>
+    <div class="w3-container w3-margin">
+        <div id="summarizetext" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'summarizetext' %}">
+                <img src="{% static 'summary.png' %}" class="icon-item-icon green-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;Say it short</b></div>
+                    <div class="icon-item-desc">&nbsp;- read at least this</div>
+                </div></a>
+        </div>
+        <div id="imageanaysis" class="w3-cell w3-half w3-padding w3-margin-bottom">
+            <a class="icon-item"
+               href="{% url 'indexexampleopen' 'imageanaysis' %}">
+                <img src="{% static 'robotpainting.png' %}" class="icon-item-icon orange-gradient-bg icon">
+                <div class="icon-item-right">
+                    <div class="icon-item-title w3-large"><b>&nbsp;I, AI can see</b></div>
+                    <div class="icon-item-desc">&nbsp;- young and hallucinated</div>
+                </div></a>
+        </div>
+    </div>
 </body>
 {% endblock %}

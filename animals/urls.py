@@ -34,6 +34,8 @@ urlpatterns = [
     path('whatsup/', views.whatsup, name='whatsup'),
     path('analysedoc/', views.analysedoc, name='analysedoc'),
     path('makeanalysis/', views.makeanalysis, name='makeanalysis'),
+    path('summarizetext/', views.summarizetext, name='summarizetext'),
+    path('imageanaysis/', views.imageanaysis, name='imageanaysis'),
     path('indexexamples/', views.indexexamples, name='indexexamples'),
     path('indexexamples/<str:id>', views.indexexampleopen, name='indexexampleopen'),
 ]
